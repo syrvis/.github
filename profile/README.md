@@ -53,7 +53,7 @@ Definitions are compiled into the program that runs them, and nothing is publish
 Every step is journaled, so after a crash or a reboot the engine knows where each workflow stood.
 A step that may have run holds with a named cause rather than run twice.
 A step that waits on a person, such as a confirm, is one more kind of wait.
-It is at `v0.2.0`. `v0.2.1`, with a fix the provability review found, is planned.
+The agent, and the client on main, require it at `v0.2.0`. `v0.2.1`, now tagged, carries a fix the provability review found, and moving the agent to it is planned.
 Design: [the engine](https://syrvis.github.io/.github/design/engine.html).
 
 ### [syrvis-client](https://github.com/syrvis/syrvis-client)

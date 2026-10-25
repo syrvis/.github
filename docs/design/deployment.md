@@ -6,7 +6,7 @@ nav_order: 5
 
 # Deployment
 
-syrvis-deploy is the part of the daemon that turns a declared fleet into running containers and back. It keeps three guarantees: desired state has one address at every instant, across any crash; a drain preempts every deploy it covers; and nothing the fleet runs, or could roll back to, is erased. Eight TLA+ properties state its drain, stop-order, one-container and retention rules, each checked beside a broken twin that must fail. The October 2026 review found the model sound with gaps and filed ten findings. A Go test then showed the first to be a real defect, which the daemon's code shares and is fixing first.
+syrvis-deploy is the part of the daemon that turns a declared fleet into running containers and back. It keeps three guarantees: desired state has one address at every instant, across any crash; a drain preempts every deploy it covers; and nothing the fleet runs, or could roll back to, is erased. Eight TLA+ properties state its drain, stop-order, one-container and retention rules, each checked beside a broken twin that must fail. The October 2026 review found the model sound with gaps and filed ten findings. A Go test then showed the first to be a real defect, which the daemon's code shared. Main now fixes it in both, and fixes five more of the findings in the model.
 
 ## Where it lives
 
@@ -66,7 +66,7 @@ A drain is the one way to suppress a service, and no push of desired state undoe
 
 An expiry is a review deadline, not a timer. A drain moves through `draining`, `drained` and `restoring` to `released`, or to `expired`, and suppresses its members until `released`.
 
-`Declare` refuses when drain writes are blocked, and refuses a stop budget on anything but a device drain (`declare.go`). A second device drain joins the standing one or refuses, naming it. Then the declare cancels the running deploys the drain covers, through each job's context, and starts the stop: a drain that arrives during a long image pull cancels the pull. The stop does not wait for a cancelled deploy's last call to land, which is the open defect under [Provability](#what-the-october-2026-review-found). When a device drain is written, the service asks the lifecycle table again under its lock, so a hand drain that a starting reboot overtook refuses and writes nothing.
+`Declare` refuses when drain writes are blocked, and refuses a stop budget on anything but a device drain (`declare.go`). A second device drain joins the standing one or refuses, naming it. Then the declare cancels the running deploys the drain covers, through each job's context, and starts the stop: a drain that arrives during a long image pull cancels the pull. At `v0.1.0` the stop does not wait for a cancelled deploy's last call to land, the defect under [Provability](#what-the-october-2026-review-found). On main, the declare records the jobs it cancelled. After its waves, the stop waits a bounded time for them to end, then checks once more each member it skipped or stopped, and stops any that came up. When a device drain is written, the service asks the lifecycle table again under its lock, so a hand drain that a starting reboot overtook refuses and writes nothing.
 
 ## Stop and start order
 
@@ -126,19 +126,21 @@ The proofs are kept truthful four ways:
 
 No module is stale, every configuration runs, and each twin fails only on its named property. The review filed all ten findings at the lowest of four severity levels, the first to rise if a Go test reproduced it.
 
-A Go test did, failing on five runs of five. A declare cancels the deploys it covers and starts the stop at once, and the stopper lists only running containers. So a container a cancelled deploy was starting comes up after that list and runs under the drain into the power-off. The model allowed that order, but no property read the containers against the drain. The daemon's own copy of this code has the same window. The finding now ranks at the most severe level: the daemon is fixing it first, and this library takes the same change after.
+A Go test did, failing on five runs of five. A declare cancels the deploys it covers and starts the stop at once, and the stopper lists only running containers. So a container a cancelled deploy was starting comes up after that list and runs under the drain, while the stop reports every member stopped. It does not reach the power-off, which reads the fleet first and halts while a managed container runs; the harm is a broken drain and a stop report that is wrong. The model allowed that order, but no property read the containers against the drain. The daemon's own copy of this code had the same window. The finding rose to the most severe level, and it is fixed on main in both copies, the daemon's first. The declare records the jobs it cancelled. After its waves, the stop waits for them to end, bounded by the engine's call timeout, then checks once more each member it skipped or stopped, and stops any that came up. The Go test passes five runs of five, beside a second test for a cancelled restore. A start that lands after that last check can still run under the drain; that narrower window is filed as its own fix.
 
-| kind | finding |
-|---|---|
-| defect | A cancelled deploy's in-flight start can land after the stopper listed its service, so the service runs under the drain (reproduced in Go). |
-| gap | The model admits a prune at `drained`, which the lifecycle refuses. |
-| gap | The rollback target is checked only where every apply succeeded. |
-| gap | The ladder omits the halt between waves and the skip of an empty member. |
-| gap | No configuration reaches the floor guard for a scope that holds the floor directly. |
-| gap | The restore's readiness gate is modeled and never checked. |
-| excess | The filesystem-order assumption is now met by the reaper and can leave the model. |
-| excess | The model's vocabulary lists are narrower than the Go's and unread. |
-| excess | The model's code citations point at the daemon's older copy. |
-| excess | 49 property copies and 19 green mutant rows test the model against itself. |
+Since the review, main has fixed five of the model's findings as well, three of them with a new broken twin, for eighteen in all.
+
+| kind | finding | on main |
+|---|---|---|
+| defect | A cancelled deploy's in-flight start can land after the stopper listed its service, so the service runs under the drain (reproduced in Go). | fixed in the code, here and in the daemon |
+| gap | The model admits a prune at `drained`, which the lifecycle refuses. | fixed in the model |
+| gap | The rollback target is checked only where every apply succeeded. | fixed in the model |
+| gap | The ladder omits the halt between waves and the skip of an empty member. | open; the model will also gain the fix's wait and second check |
+| gap | No configuration reaches the floor guard for a scope that holds the floor directly. | fixed in the model |
+| gap | The restore's readiness gate is modeled and never checked. | fixed in the model |
+| excess | The filesystem-order assumption is now met by the reaper and can leave the model. | fixed: the assumption has left the model |
+| excess | The model's vocabulary lists are narrower than the Go's and unread. | open |
+| excess | The model's code citations point at the daemon's older copy. | being fixed |
+| excess | 49 property copies and 19 green mutant rows test the model against itself. | open |
 
 Each finding is filed as a fixup in syrvis-deploy's list of work. The method behind these proofs is on [Provability](../provability/index.md).

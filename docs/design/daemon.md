@@ -76,7 +76,7 @@ On battery, the power conductor declares the same drain a person would. It weigh
 
 A drain is the one way to suppress a service, for the device or for named services. It lives in the daemon's own store with a root-only mirror, ordered by one sequence number, and no push of desired state changes it. `Drain.Declare` runs a reverse-topological stop as a watchable job, and `Drain.Release` runs the readiness-gated restore. A drained, stopped service reads drained, never broken. Reboot and power-off share the drain through the `drain-device` and `restore-device` child workflows.
 
-One defect is open here and is being fixed in the daemon first. A device drain cancels the deploys it covers and starts its stop at once, and the stop lists only what is running. So a service a deploy is starting can come up after that list and run under the drain into the power-off. A Go test reproduced it; the [deployment](deployment.md#what-the-october-2026-review-found) page has the detail.
+One defect was found here, and it is fixed on main, after the `2.0.0-alpha.67` tag. A device drain cancels the deploys it covers and starts its stop at once, and the stop lists only what is running. So a service a deploy was starting could come up after that list and run under the drain, while the stop reported every member stopped. It did not reach the power-off: `Power.Down` and the battery's power-off each read the fleet first, and halt or run the stop again while a service runs. A Go test reproduced it. Now the drain records the jobs it cancelled. After its waves, the stop waits a bounded time for them to end, then checks once more each member it skipped or stopped, and stops any that came up. The [deployment](deployment.md#what-the-october-2026-review-found) page has the detail, and the narrower window that remains.
 
 ### Chores
 
@@ -115,7 +115,7 @@ The scenarios, in plain words, are on the [scenarios page](../provability/scenar
 
 **How the proofs are kept honest.** A property should have a dual, a broken twin with one guard removed, which TLC must show failing, so no proof is green by vacuity. `make verify-spec`, part of `make check`, refuses to pass when no configuration ran or the toolchain is missing. No trace test ties these models to the Go. Instead, the commons' Go table equals the model's literal byte for byte, the old plane's fixtures equal the model's programs, and Go explorers search the real conductor step and the bus algorithm.
 
-**What the October 2026 review found.** Three reviewers ran TLC on mutated copies of these models and filed 36 findings. None is in the two most severe levels, and none shows a live bug in the daemon's code. The drain defect above came from the deployment service's model, whose code the daemon shares.
+**What the October 2026 review found.** Three reviewers ran TLC on mutated copies of these models and filed 36 findings. None is in the two most severe levels, and none shows a live bug in the daemon's code. The drain defect above, now fixed, came from the deployment service's model, whose code the daemon shares.
 
 | verdict | finding |
 |---|---|

@@ -113,7 +113,7 @@ A power cut mid-erase leaves a torn tombstone, which no reader lists and which r
 | `NoApplyUnderDeviceDrain` | no apply, rollback or prune is admitted under the device drain, and under it no reconcile steps beyond a cancelled job's last step and converge's land |
 | `StopEnds` | every stop plan ends within its budget, even if a container never dies (liveness) |
 
-`make verify-spec` runs five proofs and the fifteen twins in 63.21 s on a development Mac, the largest proof at 8,514,463 distinct states; a two-crash run of 20,364,481 states runs before each tag. The scenarios, in plain words, are under [Scenarios: Deployment](../provability/scenarios.md#deployment).
+`make verify-spec` runs five proofs and the fifteen twins in 63.21 s on a development Mac, the largest proof at 8,514,463 distinct states; two longer runs go before each tag: two crashes at 20,364,481 states, and the store under a service drain at 23,105,292. The scenarios, in plain words, are under [Scenarios: Deployment](../provability/scenarios.md#deployment).
 
 The proofs are kept truthful four ways:
 
@@ -126,9 +126,9 @@ The proofs are kept truthful four ways:
 
 No module is stale, every configuration runs, and each twin fails only on its named property. The review filed all ten findings at the lowest of four severity levels, the first to rise if a Go test reproduced it.
 
-A Go test did, failing on five runs of five. A declare cancels the deploys it covers and starts the stop at once, and the stopper lists only running containers. So a container a cancelled deploy was starting comes up after that list and runs under the drain, while the stop reports every member stopped. It does not reach the power-off, which reads the fleet first and halts while a managed container runs; the harm is a broken drain and a stop report that is wrong. The model allowed that order, but no property read the containers against the drain. The daemon's own copy of this code had the same window. The finding rose to the most severe level, and it is fixed on main in both copies, the daemon's first. The declare records the jobs it cancelled. After its waves, the stop waits for them to end, bounded by the engine's call timeout, then checks once more each member it skipped or stopped, and stops any that came up. The Go test passes five runs of five, beside a second test for a cancelled restore. A start that lands after that last check can still run under the drain; that narrower window is filed as its own fix.
+A Go test did, failing on five runs of five. A declare cancels the deploys it covers and starts the stop at once, and the stopper lists only running containers. So a container a cancelled deploy was starting comes up after that list and runs under the drain, while the stop reports every member stopped. It does not reach the power-off, which reads the fleet first and halts while a managed container runs; the harm is a broken drain and a stop report that is wrong. The model allowed that order, but no property read the containers against the drain. The daemon's own copy of this code had the same window. The finding rose to the most severe level, and it is fixed on main in both copies, the daemon's first. The declare records the jobs it cancelled. After its waves, the stop waits for them to end, bounded by the engine's call timeout, then checks once more each member it skipped or stopped, and stops any that came up. The Go test passes five runs of five, beside a second test for a cancelled restore. The daemon's copy now records, the same way, the restores its UPS watcher cancels before its own declare. A start that lands after that last check can still run under the drain; that narrower window is filed as its own fix.
 
-Since the review, main has fixed five of the model's findings as well, three of them with a new broken twin, for eighteen in all.
+Since the review, main has fixed six of the model's findings as well, three of them with a new broken twin, and checked the store under a service drain with two more twins, for twenty in all.
 
 | kind | finding | on main |
 |---|---|---|
@@ -140,7 +140,7 @@ Since the review, main has fixed five of the model's findings as well, three of 
 | gap | The restore's readiness gate is modeled and never checked. | fixed in the model |
 | excess | The filesystem-order assumption is now met by the reaper and can leave the model. | fixed: the assumption has left the model |
 | excess | The model's vocabulary lists are narrower than the Go's and unread. | open |
-| excess | The model's code citations point at the daemon's older copy. | being fixed |
+| excess | The model's code citations point at the daemon's older copy. | fixed: every code anchor points at this repository |
 | excess | 49 property copies and 19 green mutant rows test the model against itself. | open |
 
 Each finding is filed as a fixup in syrvis-deploy's list of work. The method behind these proofs is on [Provability](../provability/index.md).

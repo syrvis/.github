@@ -1,0 +1,12 @@
+title: Syrvis
+description: A declared, verified home server agent for Synology boxes, with a user guide, the design docs and how it is proven.
+remote_theme: just-the-docs/just-the-docs@v0.10.1
+plugins:
+  - jekyll-remote-theme
+  - jekyll-relative-links
+relative_links:
+  enabled: true
+  collections: false
+search_enabled: true
+aux_links:
+  "Syrvis on GitHub": "https://github.com/syrvis"

@@ -1,0 +1,5 @@
+# Exceptions to scripts/hygiene, one per line: <path-glob>: <group>[,<group>]
+# The licence names its holder.
+LICENSE: person
+# The Makefile names the private list's file, which reads as a domain.
+Makefile: domain

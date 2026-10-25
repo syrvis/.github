@@ -142,7 +142,7 @@ They asked whether each proves the right things, enough, and not too much, and r
 Two name real defects in the code, and Go tests then reproduced both. Both are now fixed.
 
 - The queue model has no instance hold, so it could not see one held emergency instance stop every ordinary lease on the box. The engine fixed it with one condition and a unit test, and the fix ships in `v0.2.1`, now tagged. `syrvis` still requires `v0.2.0`, and moving it to `v0.2.1` is planned.
-- The deployment model lets a cancelled job's last step land after the stop has reported its service stopped. So a service that was mid-start when a device drain was declared could come up and run into the power-off. A Go test in `syrvis-deploy` reproduced it, and the daemon's own copy of the code had the same window. Both copies are fixed on main, the daemon's first: the drain records the jobs it cancelled, and its stop waits a bounded time for them to end, then checks once more and stops any service that came up.
+- The deployment model lets a cancelled job's last step land after the stop has reported its service stopped. So a service that was mid-start when a device drain was declared could come up and run under the drain, while the stop said it was stopped. The power-off reads the fleet first and halts, so the harm was a broken drain and a wrong report, not a power-off over a running service. A Go test in `syrvis-deploy` reproduced it, and the daemon's own copy of the code had the same window. Both copies are fixed on main, the daemon's first: the drain records the jobs it cancelled, and its stop waits a bounded time for them to end, then checks once more and stops any service that came up.
 
 | Family | Findings | Proven well | Most worth fixing |
 |---|---|---|---|

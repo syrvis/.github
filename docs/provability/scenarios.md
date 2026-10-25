@@ -208,7 +208,7 @@ When the whole box drains for a shutdown, deploy work must stop. The checker mak
 
 A shutdown is never undone by an update that slips in.
 
-The review found a real defect here. A cut-off job's last step could start an app after the shutdown counted it stopped. That app could then run until the power went off. A test of the real code showed it happening, and the daemon had the same code. Both are now fixed. The drain notes the jobs it cut off. The stop waits a limited time for them to end, then checks once more and stops any app that came up.
+The review found a real defect here. A cut-off job's last step could start an app after the shutdown counted it stopped. That app then ran while the box said every app was stopped. The final power-off checks again first, so the power never went off under it. But the drain's promise was broken, and its report was wrong. A test of the real code showed it happening, and the daemon had the same code. Both are now fixed. The drain notes the jobs it cut off. The stop waits a limited time for them to end, then checks once more and stops any app that came up.
 
 The review also found the model let a cleanup start once the stop had finished, before the drain was released. The real code refuses that, and now the model does too.
 

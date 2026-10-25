@@ -52,7 +52,7 @@ The services run in one process. Each consumer owns the interface it calls, call
 | power lifecycle | `internal/lifecyclesvc`, over the commons' table | `Lifecycle`, `Conductor` |
 | deployment | `internal/deployment` | `Deploy`, in `syrvis-deploy` |
 | chores | `internal/choresvc` | `Chores` |
-| workflow engine | `syrvis-workflow` v0.2.0 | in its own repository |
+| workflow engine | `syrvis-workflow` v0.2.1 on main (v0.2.0 in `2.0.0-alpha.67`) | in its own repository |
 | seats and the API door | `internal/apiroster`, `internal/server`, `syrvis-mtls` | `SeamCred`, `SeamFraming` |
 | substrate | the daemon, with the commons' event bus | `EventBus` |
 

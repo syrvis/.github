@@ -48,7 +48,7 @@ Boot brings them up in that order, and deploy work waits for layer 1 to read rea
 | Deployment | `syrvis-deploy` | revisions, plans, convergence, the drain set, the stop and restore plans | `Deploy`, `DeployStore`, `DeployCycle` and `DeployLive` | [Deployment](deployment.md) |
 | Commons | `syrvis-common` | seven modules below the services, from `primitives` to `secretstore` | `Lifecycle`, kept in `frame/lifecycle/` and checked in `syrvis` | [Commons](commons.md) |
 
-`syrvis` requires `syrvis-workflow` at `v0.2.0`, `syrvis-mtls` at `v0.1.0` and all seven commons modules at `v0.1.1` (`go.mod`).
+`syrvis` on main requires `syrvis-workflow` at `v0.2.1` (its release `2.0.0-alpha.67` at `v0.2.0`), `syrvis-mtls` at `v0.1.0` and all seven commons modules at `v0.1.1` (`go.mod`).
 The client's release, `v0.1.1`, requires the transport and the box's contract module, `github.com/syrvis/syrvis/api`; its main branch adds the engine, unreleased.
 `syrvis-deploy` is tagged `v0.1.0`, but the daemon still builds its own copy in `internal/deployment/`; switching to the tag is planned.
 

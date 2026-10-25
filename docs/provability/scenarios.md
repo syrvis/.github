@@ -138,7 +138,7 @@ When the power fails, the stop job is an emergency. One worker is kept free for 
 
 For you, the battery shutdown never queues behind ordinary work.
 
-The review found a real defect here, in the code. Suppose an update pauses the power-cut workflow. Then every ordinary job on the box waits too, until a person lifts the pause. The box blames a lack of workers, which is the wrong cause. The model has no paused workflows, so it could not see this. The review found it by reading the code, and a test of the real code then showed it happening. The engine is fixed, and the fix ships in its next version. The review also found the one-tick promise cannot fail as the model is written. And four queue rules, such as emergencies first, have no check of their own.
+The review found a real defect here, in the code. Suppose an update pauses the power-cut workflow. Then every ordinary job on the box waits too, until a person lifts the pause. The box blames a lack of workers, which is the wrong cause. The model has no paused workflows, so it could not see this. The review found it by reading the code, and a test of the real code then showed it happening. The engine is fixed in its new version, `v0.2.1`. The review also found the one-tick promise cannot fail as the model is written. And four queue rules, such as emergencies first, have no check of their own.
 
 ## Deployment
 
@@ -154,7 +154,7 @@ Some services, such as monitoring, watch over the rest. Syrvis calls them the fl
 
 You can see what your box is doing until the end.
 
-The review found the model never tries stopping the monitor on its own, so that refusal is not checked yet.
+The review found the model never tried stopping the monitor on its own, so that refusal was not checked. The model now tries it, so the refusal is checked.
 
 ### Waking up in the right order
 
@@ -164,7 +164,7 @@ When the box comes back, apps start in the order they need. The checker makes su
 
 So your apps come back working. None starts against a database that is not up yet.
 
-The review found the check reads when each app starts, not when it is ready. Waiting for ready is in the model, but nothing checks it yet.
+The review found the check read when each app starts, not when it is ready. Waiting for ready was in the model, but nothing checked it. Now the check waits for each app to be ready, too.
 
 ### A loop of needs
 
@@ -198,7 +198,7 @@ The service keeps past versions of your app setup, called revisions. That lets y
 
 A rollback always has something real to go back to.
 
-The review found the rollback target is checked only when every update succeeded. A run of failed updates is the case it exists for. That case is outside the model for now.
+The review found the rollback target was checked only when every update succeeded. A run of failed updates is the case it exists for. The model now covers that case.
 
 ### No new work during a shutdown
 
@@ -208,9 +208,9 @@ When the whole box drains for a shutdown, deploy work must stop. The checker mak
 
 A shutdown is never undone by an update that slips in.
 
-The review found a real defect here. A cut-off job's last step can start an app after the shutdown counted it stopped. That app then runs until the power goes off. A test of the real code showed it happening, and the daemon has the same code. The daemon is being fixed first, and the deployment service follows.
+The review found a real defect here. A cut-off job's last step could start an app after the shutdown counted it stopped. That app could then run until the power went off. A test of the real code showed it happening, and the daemon had the same code. Both are now fixed. The drain notes the jobs it cut off. The stop waits a limited time for them to end, then checks once more and stops any app that came up.
 
-The review also found the model lets a cleanup start once the stop has finished, before the drain is released. The real code refuses that.
+The review also found the model let a cleanup start once the stop had finished, before the drain was released. The real code refuses that, and now the model does too.
 
 ## Commons
 

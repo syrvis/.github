@@ -125,7 +125,7 @@ Each guard has a broken twin, a dual, that must fail. The queue has ten duals an
 
 The October 2026 review read both model families at the commit this page describes and filed 25 findings. One exposed a live defect in the Go, one of the two the whole round found (the other is the [deployment](deployment.md#what-the-october-2026-review-found) service's); the other 24 are at the lowest severity.
 
-That defect sat where the queue model has no held instance. An emergency item of a held instance, leasable by no one, stopped every ordinary lease on the box. It was reported as `not_leased`, whose recovery, more workers, is wrong. It was reproduced and fixed after the reviewed commit, and the fix ships in `v0.2.1`, a planned patch version.
+That defect sat where the queue model has no held instance. An emergency item of a held instance, leasable by no one, stopped every ordinary lease on the box. It was reported as `not_leased`, whose recovery, more workers, is wrong. It was reproduced and fixed after the reviewed commit, and the fix ships in the patch version `v0.2.1`, now tagged. The daemon and the client still require `v0.2.0`; moving the daemon to `v0.2.1` is planned.
 
 | kind | where | what the review found |
 |---|---|---|

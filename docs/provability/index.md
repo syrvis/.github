@@ -6,7 +6,7 @@ has_children: true
 
 # Provability
 
-Syrvis model-checks the parts of its design where concurrency, crashes and reboots meet. Each model is a TLA+ specification that the TLC model checker runs in a build gate. A guard in a model comes with a broken twin that must fail. An October 2026 review found the central properties sound, named each gap and excess with its smallest fix, and found two real defects in the code: one fixed, one being fixed.
+Syrvis model-checks the parts of its design where concurrency, crashes and reboots meet. Each model is a TLA+ specification that the TLC model checker runs in a build gate. A guard in a model comes with a broken twin that must fail. An October 2026 review found the central properties sound, named each gap and excess with its smallest fix, and found two real defects in the code, both since fixed.
 
 ## The problem
 
@@ -42,9 +42,9 @@ Trace tests tie the engine's queue and evaluator models to the Go. TLC writes 2,
 
 Six reports covered every model, asking of each property whether it proves the right thing, enough, and not too much. They list 71 findings. Two are real defects in the code, and a Go test reproduced each.
 
-In the engine's queue, a held emergency workflow, one paused until a person lifts it, blocked every ordinary job on the box, under the wrong cause. The queue model has no held workflows, so no model could see it; a reviewer found it by reading the code. It is fixed, and the fix ships in the engine's next patch version.
+In the engine's queue, a held emergency workflow, one paused until a person lifts it, blocked every ordinary job on the box, under the wrong cause. The queue model has no held workflows, so no model could see it; a reviewer found it by reading the code. It is fixed, and the fix ships in the engine's patch version `v0.2.1`, now tagged.
 
-In the deployment service, a service a deploy is starting when the whole box drains can come up after the stop has counted it, and run into the power-off. The model allows that order, but no property checked for it. The daemon's code has the same window; the daemon is fixing it first, and the deployment service follows.
+In the deployment service, a service a deploy was starting when the whole box drained could come up after the stop had counted it, and run into the power-off. The model allows that order, but no property checked for it. The daemon's code had the same window. Both are now fixed: the stop waits a bounded time for the jobs the drain cut off, then checks once more and stops anything that came up.
 
 Two properties check less than their names say, where past bugs lived before the code fixed them. The engine's `ConfirmByHuman` checks the confirmed arguments, not that a person confirmed. No property of the daemon's credential model checks that each new call is judged against its key's current permissions.
 

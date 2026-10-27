@@ -33,7 +33,7 @@ A reboot waits for your typed confirm.
 On UPS battery, the agent stops the box with no one present.
 
 Each library the agent composes stands alone, with its own tests.
-The libraries that hold state also have TLA+ models, and TLC checks them in a repository's gate; the commons' lifecycle model is checked in the agent's.
+The libraries that hold state also have TLA+ models, and TLC checks them in a repository's gate; the commons' lifecycle model is checked in the commons' own gate and in the agent's.
 The [provability pages](https://syrvis.github.io/.github/provability/) say what each model proves and what it misses.
 
 ## The repos
@@ -53,7 +53,8 @@ Definitions are compiled into the program that runs them, and nothing is publish
 Every step is journaled, so after a crash or a reboot the engine knows where each workflow stood.
 A step that may have run holds with a named cause rather than run twice.
 A step that waits on a person, such as a confirm, is one more kind of wait.
-The agent's main branch requires it at `v0.2.1`, which carries a fix the provability review found; the agent's release `2.0.0-alpha.67` and the client on main require `v0.2.0`.
+The agent's and the client's main branches require it at `v0.2.1`, which carries a fix the provability review found; the agent's release `2.0.0-alpha.67` requires `v0.2.0`.
+Its newest tag, `v0.2.2`, adds named refusals when a host opens a definition or starts an instance, and a skipped step now reads nothing.
 Design: [the engine](https://syrvis.github.io/.github/design/engine.html).
 
 ### [syrvis-client](https://github.com/syrvis/syrvis-client)
@@ -73,6 +74,7 @@ The mutual TLS transport both ends share. Three packages do its work.
 `dial` is the one pinned dial.
 It uses the standard library only and holds no state; the agent keeps the listener and the roster's store.
 It is at `v0.1.0`.
+Its main branch adds `door`, the library half of a daemon's API door, and `pair`, the pairing mode's two forms, for its next tag, `v0.1.1`.
 Design: [the transport](https://syrvis.github.io/.github/design/transport.html).
 
 ### [syrvis-deploy](https://github.com/syrvis/syrvis-deploy)
@@ -81,14 +83,14 @@ The deployment service, a Go library.
 It stages, plans, applies, rolls back and prunes a box's revisions, and converges containers to them.
 It holds the drain set, the one way to suppress a service, and the plans that stop and restore.
 Its model, `Deploy.tla`, was checked before the code moved in.
-It is at `v0.1.0`; the agent still builds its own copy, and switching to this tag is planned.
+It is at `v0.1.1`; the agent still builds its own copy, and switching to this tag is planned.
 Design: [deployment](https://syrvis.github.io/.github/design/deployment.html).
 
 ### [syrvis-common](https://github.com/syrvis/syrvis-common)
 
 The libraries below the services, as seven Go modules: `primitives`, `declarations`, `adapters`, `probes`, `grading`, `frame` and `secretstore`.
 A test holds their order, so a module imports only the modules below it.
-All seven are tagged together at one version.
+All seven are tagged together at one version, most recently `v0.1.4`.
 The agent requires each at `v0.1.1`, and the deployment service requires five of them.
 Design: [the commons](https://syrvis.github.io/.github/design/commons.html).
 

@@ -77,16 +77,16 @@ A coordinate outside the tables answers a word that does not fire: what the tabl
 
 The order is a test, not a convention. In the root module's `layout_test.go`, `TestModulesFormNoCycle` refuses a cycle among the modules' requires, a module missing from the order table, and a sibling required without its local `replace`. `TestWallsHoldTheOrder` checks that each module requires no sibling outside its row, and that every package, tests included, imports only the standard library, its own module, a module below it and `api/`. It parses every `.go` file whatever its build constraint, so a Linux-only file is walled on any machine.
 
-`make check` runs `toolchain render fmt vet stdlib dashes hygiene test` over the root and the seven; `stdlib` refuses any module outside `github.com/syrvis/`, and no gate reaches the network. A release train tags every module at one version, bottom up: `v0.1.0`, then `v0.1.1`.
+`make check` runs `toolchain render fmt vet stdlib dashes hygiene test verify-spec` over the root and the seven; `stdlib` refuses any module outside `github.com/syrvis/`, and no gate reaches the network. A release train tags every module at one version, bottom up, from `v0.1.0` to the fifth train's `v0.1.4`.
 
 ## Provability
 
 Two TLA+ models describe commons code:
 
 - `frame/lifecycle/Lifecycle.tla` (1,088 lines) models one box's place, resolved from six world conditions, and its six marks, with nineteen operation steps guarded by the 208-cell table and twelve world moves, such as the boot ladder, rescue and the battery episode.
-- `EventBus.tla`, kept in the daemon's `specs/`, models two producers fanning events out to one full subscriber, and the overflow signal closing once. It describes `primitives/events`.
+- `EventBus.tla` modeled two producers fanning events out to one full subscriber, and the overflow signal closing once. It described `primitives/events`, and the daemon's main retired it after `2.0.0-alpha.67`, leaving the Go explorer below as the bus's one proof.
 
-No other commons module has a TLA+ model; Go tests cover the rest. `Lifecycle.tla` lives here as the source of record, but TLC checks it only in the daemon's repository, where `make verify-spec` reads the vendored copy over the proof case and four broken twins. The proof case covers 1,242 distinct states to depth 15 in under 1.5 seconds. The commons' own gate runs no TLC, and the deployment service vendors the same bytes but assumes the admission instead of checking it.
+No other commons module has a TLA+ model; Go tests cover the rest. `Lifecycle.tla` lives here as the source of record, and TLC checks it here, where `make verify-spec` runs the proof case and its four broken twins, and in the daemon's repository over the vendored copy. The proof case covers 1,242 distinct states to depth 15 in under 1.5 seconds. The commons' own gate runs no TLC, and the deployment service vendors the same bytes but assumes the admission instead of checking it.
 
 | property | what it says | twin |
 |---|---|---|
@@ -127,6 +127,6 @@ The top finding: `DrainOwnerHeld` proves a refusal the product does not make. Re
 | excess | Seven of nineteen operation steps reach no new state. |
 | excess | Nothing keeps the daemon's spec path a link, and the deployment model cites this one by line. |
 | excess | The module's header, counts and paths name homes the code has left. |
-| excess | `EventBus.tla` models moved code and repeats the Go explorer, nothing holding the two equal (second-lowest level). |
+| excess | `EventBus.tla` models moved code and repeats the Go explorer, nothing holding the two equal (second-lowest level); main has since retired the model. |
 
 The findings are being filed as fixups in the commons' and the daemon's lists of work, each where its part lives. The method behind these proofs is on [Provability](../provability/index.md).

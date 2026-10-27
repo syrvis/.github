@@ -32,7 +32,7 @@ Bounds keep the search finite: two crashes, two attempts, a few steps. A green r
 
 ## How Syrvis uses it
 
-The daemon, the engine and the deployment service run TLC over every model in `make check`. A missing JVM or checker fails the gate, since unchecked is never a pass. The largest runs, such as the engine's sweep of every valid program up to three steps, take about an hour and run before a version is tagged.
+The daemon, the engine, the deployment service and the commons run TLC over every model in `make check`. A missing JVM or checker fails the gate, since unchecked is never a pass. The largest runs, such as the engine's sweep of every valid program up to three steps, take about an hour and run before a version is tagged.
 
 A guard's dual is the model with that guard turned off, and it must fail, so the property it protects cannot pass by vacuity. In the engine and the deployment service, a dual is green only when TLC reports the exact property its configuration names. A proof there that reaches fewer than two states is red. In the daemon, each dual must reach its violation on every fair behavior.
 

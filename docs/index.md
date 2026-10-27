@@ -74,5 +74,7 @@ This site describes them at these versions:
 | `syrvis-workflow` | `v0.2.0` | the workflow engine | [Engine](design/engine.md) |
 | `syrvis-client` | `v0.1.1` | the `syrvis` command | [Client](design/client.md) |
 | `syrvis-mtls` | `v0.1.0` | the mutual TLS transport | [Transport](design/transport.md) |
-| `syrvis-deploy` | `v0.1.0` | the deployment service | [Deployment](design/deployment.md) |
+| `syrvis-deploy` | none: the agent builds its own copy | the deployment service | [Deployment](design/deployment.md) |
 | `syrvis-common` | `v0.1.1` | the libraries below the services | [Commons](design/commons.md) |
+
+The versions in this table are the ones the released daemon, `2.0.0-alpha.67`, carries, and each component's newest tag is on its own design page.

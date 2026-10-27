@@ -74,9 +74,9 @@ The client's `syrvis context test <name>` walks the layers in order and stops at
 | instance | the box answering is not the one the context pinned | checked by the client | re-pin deliberately: the box was rebuilt, or the context aims at another |
 | seat | a paste-line that breaks the grammar or asks past the ceiling | 23 grammar kinds, `over_ceiling` | the refusal states the rule it broke; the host adds its fix |
 
-## The door, planned
+## The door
 
-Today each daemon holds its own door: the listener, the handshake and the accept verdict over its roster. Planned: when a second daemon serves the API, the door's handshake and verdicts (the row verdict, the source check, the expiry test and the accept judge over a host's store) move into this library, so every daemon judges a key by one computation.
+At `v0.1.0` each daemon holds its own door: the listener, the handshake and the accept verdict over its roster. On main, for the next tag, `v0.1.1`, the door's handshake and verdicts (the row verdict, the source check, the expiry test and the accept judge over a host's store) are in this library's `door` package, so every daemon can judge a key by one computation; moving the daemon onto it is planned. A new package, `pair`, holds the pairing mode's two forms: a pasted key, and a code each end proves by HMAC over the key the other saw, so the code never travels.
 
 ## Provability
 

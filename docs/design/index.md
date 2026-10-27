@@ -41,16 +41,16 @@ Boot brings them up in that order, and deploy work waits for layer 1 to read rea
 
 | Component | Repository | What it owns | Its TLA+ model | Page |
 |---|---|---|---|---|
-| Daemon | `syrvis` | the DSM package, the assembly, the lifecycle and chores services, the API server and its sealed registry | `Chores`, `Conductor`, `EventBus`, `SeamCred`, `SeamFraming` and the `Workflow` family; its gate also checks the commons' `Lifecycle` | [Daemon](daemon.md) |
+| Daemon | `syrvis` | the DSM package, the assembly, the lifecycle and chores services, the API server and its sealed registry | `Chores`, `Conductor`, `SeamCred`, `SeamFraming` and the `Workflow` family, with `EventBus` until main retired it after `2.0.0-alpha.67`; its gate also checks the commons' `Lifecycle` | [Daemon](daemon.md) |
 | Engine | `syrvis-workflow` | the evaluator, the journal, the durable work queue, versions and migration, steps that wait on a person | `Engine`, `Queue` and `Composed`, each tied to the Go by a trace replay | [Engine](engine.md) |
 | Client | `syrvis-client` | the `syrvis` command, the MCP bridge, and on main, unreleased, an engine host for reboot and power-off | none; tests hold the printed commands | [Client](client.md) |
 | Transport | `syrvis-mtls` | `pin`, `seat` and `dial`, the decision both ends share | none in its repository; `SeamCred` in `syrvis` models the credential plane around it | [Transport](transport.md) |
 | Deployment | `syrvis-deploy` | revisions, plans, convergence, the drain set, the stop and restore plans | `Deploy`, `DeployStore`, `DeployCycle` and `DeployLive` | [Deployment](deployment.md) |
-| Commons | `syrvis-common` | seven modules below the services, from `primitives` to `secretstore` | `Lifecycle`, kept in `frame/lifecycle/` and checked in `syrvis` | [Commons](commons.md) |
+| Commons | `syrvis-common` | seven modules below the services, from `primitives` to `secretstore` | `Lifecycle`, kept in `frame/lifecycle/` and checked there and in `syrvis` | [Commons](commons.md) |
 
 `syrvis` on main requires `syrvis-workflow` at `v0.2.1` (its release `2.0.0-alpha.67` at `v0.2.0`), `syrvis-mtls` at `v0.1.0` and all seven commons modules at `v0.1.1` (`go.mod`).
 The client's release, `v0.1.1`, requires the transport and the box's contract module, `github.com/syrvis/syrvis/api`; its main branch adds the engine, unreleased.
-`syrvis-deploy` is tagged `v0.1.0`, but the daemon still builds its own copy in `internal/deployment/`; switching to the tag is planned.
+`syrvis-deploy` is tagged `v0.1.1`, but the daemon still builds its own copy in `internal/deployment/`; switching to that tag is planned.
 
 ## How the daemon composes them
 
@@ -128,7 +128,7 @@ Until it lands, each seam below is checked from one side, or by a Go test.
 | engine and admission | admission is a pure read under the engine's lock | the lifecycle table's conformance test |
 | transport and daemon | the judge runs under the daemon's clock and lock, and the seat store is the daemon's folder | `SeamCred.tla`, and `TestTransportSeamVector` |
 | dispatcher and libraries | every registered method has one handler and one schema | the seal test and the schema tests in `api/` |
-| engine and event bus | a slow subscriber overflows rather than blocking the publisher | the commons' Go tests; `EventBus.tla` checks only that the overflow signal closes once, and models code that has moved |
+| engine and event bus | a slow subscriber overflows rather than blocking the publisher | the commons' Go tests, whose explorer is the bus's one proof since main retired `EventBus.tla` after `2.0.0-alpha.67` |
 
 Most properties have a dual: a copy of the model with one guard removed, which must fail.
 A dual guards against a property that passes because it checks nothing, and the review lists the properties that have none.
@@ -141,14 +141,14 @@ In October 2026, six reviewers read every model against its code.
 They asked whether each proves the right things, enough, and not too much, and reported 71 findings.
 Two name real defects in the code, and Go tests then reproduced both. Both are now fixed.
 
-- The queue model has no instance hold, so it could not see one held emergency instance stop every ordinary lease on the box. The engine fixed it with one condition and a unit test, and the fix ships in `v0.2.1`, now tagged. `syrvis` still requires `v0.2.0`, and moving it to `v0.2.1` is planned.
+- The queue model has no instance hold, so it could not see one held emergency instance stop every ordinary lease on the box. The engine fixed it with one condition and a unit test, and the fix ships in `v0.2.1`, which `syrvis` and the client require on main.
 - The deployment model lets a cancelled job's last step land after the stop has reported its service stopped. So a service that was mid-start when a device drain was declared could come up and run under the drain, while the stop said it was stopped. The power-off reads the fleet first and halts, so the harm was a broken drain and a wrong report, not a power-off over a running service. A Go test in `syrvis-deploy` reproduced it, and the daemon's own copy of the code had the same window. Both copies are fixed on main, the daemon's first: the drain records the jobs it cancelled, and its stop waits a bounded time for them to end, then checks once more and stops any service that came up.
 
 | Family | Findings | Proven well | Most worth fixing |
 |---|---|---|---|
 | Queue (`syrvis-workflow`) | 11 | every guard's dual reaches its violation, and the Go follows the model step by step | no instance hold, which hid the first defect above, now fixed in the Go |
 | Lifecycle (`syrvis-common`, checked in `syrvis`) | 13 | the table in the model is the Go table, byte for byte | no property proves that a reboot never stands over a released drain |
-| Daemon services (`syrvis`) | 14 | `Chores`, `SeamCred` and `SeamFraming` are sound, with gaps | `Conductor` proves the wrong thing, and `EventBus` models code that has moved |
+| Daemon services (`syrvis`) | 14 | `Chores`, `SeamCred` and `SeamFraming` are sound, with gaps | `Conductor` proves the wrong thing, and `EventBus` modeled code that had moved, since retired on main |
 | Engine (`syrvis-workflow`) | 14 | every dual reaches its violation, and the trace replay holds | `ConfirmByHuman` checks the confirmed arguments, never that a person confirmed |
 | Deployment (`syrvis-deploy`) | 10 | each dual plants one bug, and `DeployCycle` covers its whole space | no property reads the containers against the drain, which hid the second defect above, now fixed in the Go |
 | Old workflow engine (`syrvis`) | 9 | in force, with gaps, for the engine it models | it proves the engine that is leaving, at about six and a half minutes of local TLC |

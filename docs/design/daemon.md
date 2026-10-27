@@ -54,7 +54,7 @@ The services run in one process. Each consumer owns the interface it calls, call
 | chores | `internal/choresvc` | `Chores` |
 | workflow engine | `syrvis-workflow` v0.2.1 on main (v0.2.0 in `2.0.0-alpha.67`) | in its own repository |
 | seats and the API door | `internal/apiroster`, `internal/server`, `syrvis-mtls` | `SeamCred`, `SeamFraming` |
-| substrate | the daemon, with the commons' event bus | `EventBus` |
+| substrate | the daemon, with the commons' event bus | `EventBus` at `2.0.0-alpha.67`, retired on main |
 
 The [deployment](deployment.md) service stops services when the lifecycle says so, and refuses a deployment the daemon did not start while the box is drained. Moving the daemon onto the service's copy in `syrvis-deploy` is planned.
 
@@ -76,7 +76,7 @@ On battery, the power conductor declares the same drain a person would. It weigh
 
 A drain is the one way to suppress a service, for the device or for named services. It lives in the daemon's own store with a root-only mirror, ordered by one sequence number, and no push of desired state changes it. `Drain.Declare` runs a reverse-topological stop as a watchable job, and `Drain.Release` runs the readiness-gated restore. A drained, stopped service reads drained, never broken. Reboot and power-off share the drain through the `drain-device` and `restore-device` child workflows.
 
-One defect was found here, and it is fixed on main, after the `2.0.0-alpha.67` tag. A device drain cancels the deploys it covers and starts its stop at once, and the stop lists only what is running. So a service a deploy was starting could come up after that list and run under the drain, while the stop reported every member stopped. It did not reach the power-off: `Power.Down` and the battery's power-off each read the fleet first, and halt or run the stop again while a service runs. A Go test reproduced it. Now the drain records the jobs it cancelled. After its waves, the stop waits a bounded time for them to end, then checks once more each member it skipped or stopped, and stops any that came up. The [deployment](deployment.md#what-the-october-2026-review-found) page has the detail, and the narrower window that remains.
+One defect was found here, and it is fixed on main, after the `2.0.0-alpha.67` tag. A device drain cancels the deploys it covers and starts its stop at once, and the stop lists only what is running. So a service a deploy was starting could come up after that list and run under the drain, while the stop reported every member stopped. It did not reach the power-off: `Power.Down` and the battery's power-off each read the fleet first, and halt or run the stop again while a service runs. A Go test reproduced it. Now the drain records the jobs it cancelled. After its waves, the stop waits a bounded time for them to end, then checks once more each member it skipped or stopped, and stops any that came up. The [deployment](deployment.md#what-the-october-2026-review-found) page has the detail, and the narrower window main has since closed.
 
 ### Chores
 
@@ -99,7 +99,7 @@ Health is the conformance of observed state to declared intent, never uptime. `S
 
 ## Provability
 
-TLC, the TLA+ model checker, walks every reachable state of a model within its bounds. `specs/` holds seven model families in 36 configurations: nine proof cases and 27 duals.
+TLC, the TLA+ model checker, walks every reachable state of a model within its bounds. At `2.0.0-alpha.67`, `specs/` holds seven model families in 36 configurations: nine proof cases and 27 duals. Main has since retired `EventBus` and its one configuration, leaving 35.
 
 | model | what it checks |
 |---|---|
@@ -107,7 +107,7 @@ TLC, the TLA+ model checker, walks every reachable state of a model within its b
 | `Workflow` family | The old plane: one instance survives crashes, reboots and lost writes, and never repeats a step not declared repeatable. |
 | `Chores` | One instance per open item, one page per window, and no clear on an incomplete reading. |
 | `Conductor` | One drain per battery episode, never against a person's drain, and power-off only with the lease held and the fleet down. |
-| `EventBus` | A saturated subscriber's overflow signal closes at most once. |
+| `EventBus` | A saturated subscriber's overflow signal closes at most once. Retired on main, where the commons' Go explorer is the bus's one proof. |
 | `SeamCred` | No forged grade, no revoked key back, and no call beyond its grade. |
 | `SeamFraming` | Every message arrives intact and in order, and an oversize frame is refused. |
 
@@ -124,9 +124,9 @@ The scenarios, in plain words, are on the [scenarios page](../provability/scenar
 | too little | `SeamCred` never checks the per-call re-judge, the space where a since-fixed bug lived. |
 | too little | The lifecycle model forbids a drain release that the product allows by abandoning the reboot, and lacks three releases the code performs. |
 | too little | The old plane's model never reaches the shipped reboot's boot-wait shape, and the conductor's pause is not modeled. |
-| too little | The commons runs no model checker over its lifecycle source, and `Assembly.tla`, the fence-then-write proof, is planned. |
+| too little | The commons ran no model checker over its lifecycle source, which its own gate now does, and `Assembly.tla`, the fence-then-write proof, is planned. |
 | too much | The `Workflow` family proves the plane that is leaving, at about six and a half minutes of TLC per local gate. |
-| too much | `EventBus.tla` models code that moved to the commons, and most `Conductor` and `Chores` invariants restate their own guard. |
+| too much | `EventBus.tla` models code that moved to the commons (retired on main since), and most `Conductor` and `Chores` invariants restate their own guard. |
 | too much | `SeamCred`'s stale-serve property is stricter than the design, which serves a quiet connection until the next 30-second sweep. |
 
 Each finding is being filed as a fixup in the list of work of the repository that owns its model. The method, and every component's models, are on the [provability overview](../provability/index.md).

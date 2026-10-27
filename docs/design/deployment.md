@@ -10,7 +10,7 @@ syrvis-deploy is the part of the daemon that turns a declared fleet into running
 
 ## Where it lives
 
-syrvis-deploy is a Go library that the daemon `syrvisd` embeds on the box, with no process or socket of its own. It reaches Docker only through the `Containers` and `Stopper` interfaces (`seams.go`). It is tagged `v0.1.0` and requires five [commons](commons.md) modules at `v0.1.1`. The daemon still builds from its own copy of these packages; moving it onto `v0.1.0` is planned. It serves ten methods:
+syrvis-deploy is a Go library that the daemon `syrvisd` embeds on the box, with no process or socket of its own. It reaches Docker only through the `Containers` and `Stopper` interfaces (`seams.go`). It is tagged `v0.1.1` and requires five [commons](commons.md) modules at `v0.1.1`. The daemon still builds from its own copy of these packages; moving it onto `v0.1.1` is planned. It serves ten methods:
 
 | method | what it does |
 |---|---|
@@ -118,29 +118,29 @@ A power cut mid-erase leaves a torn tombstone, which no reader lists and which r
 The proofs are kept truthful four ways:
 
 - Every property has a broken twin that must fail on it, and the runner passes a twin only when TLC names that property, so no proof is green by vacuity.
-- `specs/mutants.tsv` holds 34 edits to the actions: 15 must turn a proof red, 19 stay green for a written reason.
+- `specs/mutants.tsv` holds 15 edits to the actions, each of which must turn a proof red; the 19 that stayed green are gone, and `specs/copies_test.go` holds each property's copy of an action to its original in `make check`.
 - The proofs check deadlock, so any stuck state but the one allowed end fails.
-- Eleven Go tests, each named for its property, drive the library over fakes. No test reads the model yet; a trace test that replays TLC traces against the library is planned.
+- Eleven Go tests, each named for its property, drive the library over fakes. `make check` also replays 2,000 behaviours TLC simulates from the model against the library (`verify-trace`), and `conform_test.go` holds the Go's words and the lifecycle's cells equal to the model's.
 
 ### What the October 2026 review found
 
 No module is stale, every configuration runs, and each twin fails only on its named property. The review filed all ten findings at the lowest of four severity levels, the first to rise if a Go test reproduced it.
 
-A Go test did, failing on five runs of five. A declare cancels the deploys it covers and starts the stop at once, and the stopper lists only running containers. So a container a cancelled deploy was starting comes up after that list and runs under the drain, while the stop reports every member stopped. It does not reach the power-off, which reads the fleet first and halts while a managed container runs; the harm is a broken drain and a stop report that is wrong. The model allowed that order, but no property read the containers against the drain. The daemon's own copy of this code had the same window. The finding rose to the most severe level, and it is fixed on main in both copies, the daemon's first. The declare records the jobs it cancelled. After its waves, the stop waits for them to end, bounded by the engine's call timeout, then checks once more each member it skipped or stopped, and stops any that came up. The Go test passes five runs of five, beside a second test for a cancelled restore. The daemon's copy now records, the same way, the restores its UPS watcher cancels before its own declare. A start that lands after that last check can still run under the drain; that narrower window is filed as its own fix.
+A Go test did, failing on five runs of five. A declare cancels the deploys it covers and starts the stop at once, and the stopper lists only running containers. So a container a cancelled deploy was starting comes up after that list and runs under the drain, while the stop reports every member stopped. It does not reach the power-off, which reads the fleet first and halts while a managed container runs; the harm is a broken drain and a stop report that is wrong. The model allowed that order, but no property read the containers against the drain. The daemon's own copy of this code had the same window. The finding rose to the most severe level, and it is fixed on main in both copies, the daemon's first. The declare records the jobs it cancelled. After its waves, the stop waits for them to end, bounded by the engine's call timeout, then checks once more each member it skipped or stopped, and stops any that came up. The Go test passes five runs of five, beside a second test for a cancelled restore. The daemon's copy now records, the same way, the restores its UPS watcher cancels before its own declare. A start that landed after that last check could still run under the drain, and main has fixed that narrower window too, in both copies: the stop now waits, within a bound, for the engine's answer to each start a cancelled job sent, and reports a start left unanswered, never all stopped.
 
-Since the review, main has fixed six of the model's findings as well, three of them with a new broken twin, and checked the store under a service drain with two more twins, for twenty in all.
+Since the review, main has fixed the model's nine other findings as well, adding broken twins as it went, and checked the store under a service drain; `specs/README.md` now lists twenty-one twins.
 
 | kind | finding | on main |
 |---|---|---|
 | defect | A cancelled deploy's in-flight start can land after the stopper listed its service, so the service runs under the drain (reproduced in Go). | fixed in the code, here and in the daemon |
 | gap | The model admits a prune at `drained`, which the lifecycle refuses. | fixed in the model |
 | gap | The rollback target is checked only where every apply succeeded. | fixed in the model |
-| gap | The ladder omits the halt between waves and the skip of an empty member. | open; the model will also gain the fix's wait and second check |
+| gap | The ladder omits the halt between waves and the skip of an empty member. | fixed in the model: `NoLadderOnAbsent` holds the skip, `StoppedStaysDown` the fix's settle, and the model states that no conductor halts the stopper |
 | gap | No configuration reaches the floor guard for a scope that holds the floor directly. | fixed in the model |
 | gap | The restore's readiness gate is modeled and never checked. | fixed in the model |
 | excess | The filesystem-order assumption is now met by the reaper and can leave the model. | fixed: the assumption has left the model |
-| excess | The model's vocabulary lists are narrower than the Go's and unread. | open |
+| excess | The model's vocabulary lists are narrower than the Go's and unread. | fixed: `conform_test.go` holds each list equal to the Go's |
 | excess | The model's code citations point at the daemon's older copy. | fixed: every code anchor points at this repository |
-| excess | 49 property copies and 19 green mutant rows test the model against itself. | open |
+| excess | 49 property copies and 19 green mutant rows test the model against itself. | fixed: `specs/copies_test.go` holds each copy to its original, and the green rows are gone |
 
 Each finding is filed as a fixup in syrvis-deploy's list of work. The method behind these proofs is on [Provability](../provability/index.md).

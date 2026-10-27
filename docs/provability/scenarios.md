@@ -14,7 +14,7 @@ Each scenario below starts with what could go wrong, in an everyday picture. The
 
 ## Daemon
 
-The daemon is the Syrvis program that runs on your box. It runs your workflows, watches the power and answers your computer. Its checks run with its tests, in the same gate. The lifecycle rules and the event bus are checked here too. They belong to the commons, so you will find them under [Commons](#commons).
+The daemon is the Syrvis program that runs on your box. It runs your workflows, watches the power and answers your computer. Its checks run with its tests, in the same gate. The lifecycle rules are checked here too, and in release 2.0.0-alpha.67 the event bus. They belong to the commons, so you will find them under [Commons](#commons).
 
 ### Upkeep that warns you once
 
@@ -214,7 +214,7 @@ The review also found the model let a cleanup start once the stop had finished, 
 
 ## Commons
 
-The commons is shared code the Syrvis components build on. Two parts of it have models: the lifecycle rules and the event bus. The daemon's checks run both models. The commons runs no model checker of its own yet. The review suggested moving the lifecycle check next to its rules.
+The commons is shared code the Syrvis components build on. Two parts of it have models: the lifecycle rules and the event bus. In release 2.0.0-alpha.67 the daemon's checks run both models. Since then the commons checks the lifecycle model next to its rules, as the review suggested, and the event bus model has been retired.
 
 The lifecycle rules are one table of 208 cells. A test holds the code's copy of the table equal to the model's. It compares them byte for byte.
 
@@ -256,4 +256,4 @@ Inside the daemon, events go out to listeners. A slow listener can fall behind. 
 
 One slow part of the daemon cannot crash the rest.
 
-An earlier version of this code could send that signal twice. With its lock removed, the model shows that old bug. The review found this code has since moved into the commons. A test there explores the same steps, written in Go. The review suggests keeping a single proof, next to the code.
+An earlier version of this code could send that signal twice. With its lock removed, the model shows that old bug. The review found this code has since moved into the commons. A test there explores the same steps, written in Go. The review suggested keeping a single proof, next to the code, and that test is now the only one: the model has been retired.

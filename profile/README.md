@@ -104,8 +104,10 @@ Each library is a Go module at a semantic-version tag, and the agent vendors the
 | syrvis-workflow | the workflow engine | syrvis; syrvis-client on main, unreleased | `v0.2.0` |
 | syrvis-mtls | the shared transport | syrvis, syrvis-client | `v0.1.0` |
 | syrvis-common | the libraries below the services | syrvis, syrvis-deploy | `v0.1.1` |
-| syrvis-deploy | revisions, convergence and drains | syrvis, once the switch lands | `v0.1.0` |
+| syrvis-deploy | revisions, convergence and drains | syrvis, once the switch lands | none: the agent builds its own copy |
 | syrvis-client | the `syrvis` command | nothing: it is the program on your computer | `v0.1.1` |
+
+The versions in this table are the ones the released agent, `2.0.0-alpha.67`, carries, and each repository's newest tag is in its own section above.
 
 The client and the deployment service also require the box's contract module, `github.com/syrvis/syrvis/api`, at a tag.
 

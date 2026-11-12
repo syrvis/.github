@@ -18,7 +18,7 @@ Syrvis is two programs. The agent, `syrvisd`, runs on the box as a DSM package. 
 | [First steps](first-steps.md) | checking the install, reading the box, the container plane, self-repair, a second computer, a planned reboot |
 | [Commands](commands.md) | every `syrvis` command of this release, the commands run at the box, and the exit codes |
 | [Troubleshooting](troubleshooting.md) | the refusals you are likeliest to meet, each with its recovery |
-| [Upgrade and undo](upgrade-and-undo.md) | a newer package or client, going back to an older release, and taking Syrvis off the box |
+| [Upgrade and uninstall](upgrade-and-uninstall.md) | a newer package or client, going back to an older release, and taking Syrvis off the box |
 
 ## What the install asks of you
 

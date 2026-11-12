@@ -1,10 +1,10 @@
 ---
-title: Upgrade and undo
+title: Upgrade and uninstall
 parent: User guide
 nav_order: 5
 ---
 
-# Upgrade and undo
+# Upgrade and uninstall
 
 An upgrade is two acts: install the newer package in Package Center, then run the root step with no flags, so the box serves the new build. Going back to an older release is the full undo, then a first install of that release. The undo itself is one root command, run before Package Center's uninstall.
 
@@ -48,7 +48,7 @@ Install and check it as the install's [step 1](install.md#step-1-get-the-client)
 
 On DSM 7.4.1 no older package installs over a newer one. Package Center refuses with `You cannot roll back to the older version`, and `synopkg install` refuses with `cannot downgrade to older version`. So a downgrade is the undo below, then a first install of the older release, as the [Install](install.md) page walks it. The box's state is not carried: each computer pairs again, and you apply your declaration anew.
 
-## Undo
+## Uninstall
 
 Run the undo before Package Center's uninstall, because the uninstall deletes the script that carries it. To read the whole teardown first, at the box:
 

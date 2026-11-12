@@ -124,7 +124,7 @@ Read three things in what it prints:
 - The pin line, `syrvis context pin nas <nas-ip>:7447 <64 hex>`, under `fingerprint` or under `next`. Copy it whole for step 6.
 - Any line beginning `NOT DONE`. It names what did not happen and the command to run next. [Troubleshooting](troubleshooting.md) lists the common ones.
 
-The run also prints the agent's health verdict and an `undo` line; [Upgrade and undo](upgrade-and-undo.md) covers the teardown. Running the same command again with the same flags changes nothing, and prints `start-time keys moved: none`.
+The run also prints the agent's health verdict and an `undo` line; [Upgrade and uninstall](upgrade-and-uninstall.md) covers the teardown. Running the same command again with the same flags changes nothing, and prints `start-time keys moved: none`.
 
 ## Step 6: Pin the box
 

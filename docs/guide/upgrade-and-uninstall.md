@@ -1,12 +1,12 @@
 ---
-title: Upgrade and undo
+title: Upgrade and uninstall
 parent: User guide
 nav_order: 5
 ---
 
-# Upgrade and undo
+# Upgrade and uninstall
 
-An upgrade is two acts: install the newer package in Package Center, then run the root step with no flags, so the box serves the new build. Going back to an older release is the full undo, then a first install of that release. The undo itself is one root command, run before Package Center's uninstall.
+An upgrade is two acts: install the newer package in Package Center, then run the root step with no flags, so the box serves the new build. Going back to an older release is an uninstall, then a first install of that release. The uninstall's root step is one command, run before Package Center > SyrvisCore > Uninstall.
 
 ## Upgrade the package
 
@@ -46,11 +46,13 @@ Install and check it as the install's [step 1](install.md#step-1-get-the-client)
 
 ## Go back to an older release
 
-On DSM 7.4.1 no older package installs over a newer one. Package Center refuses with `You cannot roll back to the older version`, and `synopkg install` refuses with `cannot downgrade to older version`. So a downgrade is the undo below, then a first install of the older release, as the [Install](install.md) page walks it. The box's state is not carried: each computer pairs again, and you apply your declaration anew.
+On DSM 7.4.1 no older package installs over a newer one. Package Center refuses with `You cannot roll back to the older version`, and `synopkg install` refuses with `cannot downgrade to older version`. So a downgrade is the uninstall below, then a first install of the older release, as the [Install](install.md) page walks it. The box's state is not carried: each computer pairs again, and you apply your declaration anew.
 
-## Undo
+## Uninstall
 
-Run the undo before Package Center's uninstall, because the uninstall deletes the script that carries it. To read the whole teardown first, at the box:
+From your computer, `syrvis --context nas uninstall` walks the steps below: it reads what the box holds, waits until no service is deployed, and prints the root line of step 2 for you to run at the box. It asks one thing, whether the box's identity is kept or erased; answer with `--keep-identity` or `--erase-identity`. Clients up to v0.1.6 spell the verb `undo`, and their `undo` takes neither of the two flags.
+
+Run the uninstall's root step before Package Center > SyrvisCore > Uninstall, because that uninstall deletes the script that carries it. To read the whole teardown first, at the box:
 
 ```
 sudo /var/packages/syrviscore/target/bin/syrvis-enable --undo-help
@@ -61,7 +63,7 @@ sudo /var/packages/syrviscore/target/bin/syrvis-enable --undo-help
    ```
    sudo /var/packages/syrviscore/target/bin/syrvis-enable --undo
    ```
-   It lists what it will remove and what it will leave, read off the box, and asks for one word. `undo` disarms boot start, stops the agent, waits until DSM reports the unit inactive, and only then removes the agent's root-owned copy. It leaves `/usr/local/etc/syrvisd/`. `undo-identity` removes that folder too, and with it the key roster, so every computer must enrol again. Anything else stops the run with nothing changed. Through Task Scheduler there is no prompt, so give the word on standard input:
+   It lists what it will remove and what it will leave, read off the box, and asks for one word. `undo` disarms boot start, stops the agent, waits until DSM reports the unit inactive, and only then removes the agent's root-owned copy. It leaves `/usr/local/etc/syrvisd/`. `undo-identity` removes that folder too, and with it the key roster, so every computer must enrol again. These are the root step's words for the client's two ways: `undo` keeps the box's identity (`--keep-identity`), `undo-identity` erases it (`--erase-identity`). Anything else stops the run with nothing changed. Through Task Scheduler there is no prompt, so give the word on standard input:
    ```
    echo undo | sudo /var/packages/syrviscore/target/bin/syrvis-enable --undo
    ```
@@ -69,6 +71,6 @@ sudo /var/packages/syrviscore/target/bin/syrvis-enable --undo-help
    ```
    sudo rm -f /usr/local/etc/rc.d/S99syrvisd.sh /usr/local/lib/syrviscore/syrvisd-rescue /usr/local/lib/syrviscore/syrvisd-rescue.version
    ```
-4. In Package Center, choose SyrvisCore > Uninstall. It deletes nothing of yours, and DSM removes the package's own data directory with it.
+4. In Package Center, choose SyrvisCore > Uninstall. It deletes nothing of yours, and DSM removes the package's own data directory with it. After `undo` it refuses while the identity stands: the package stays, ready for a reinstall, until step 2 runs with `undo-identity`.
 5. Delete `.syrvis-volume.json` from the top of the shared folder, then the folder if you no longer want it.
 6. Remove `/var/services/homes/syrvis/` if it exists, and the firewall rule you added, if you no longer want them.

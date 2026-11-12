@@ -50,7 +50,7 @@ On DSM 7.4.1 no older package installs over a newer one. Package Center refuses 
 
 ## Uninstall
 
-From your computer, `syrvis --context nas uninstall` walks the steps below: it reads what the box holds, waits until no service is deployed, and prints the root line of step 2 for you to run at the box. It asks one thing, whether the box's identity is kept or erased; answer with `--keep-identity` or `--erase-identity`. Clients up to v0.1.6 spell the verb `undo`.
+From your computer, `syrvis --context nas uninstall` walks the steps below: it reads what the box holds, waits until no service is deployed, and prints the root line of step 2 for you to run at the box. It asks one thing, whether the box's identity is kept or erased; answer with `--keep-identity` or `--erase-identity`. Clients up to v0.1.6 spell the verb `undo`, and their `undo` takes neither of the two flags.
 
 Run the uninstall's root step before Package Center > SyrvisCore > Uninstall, because that uninstall deletes the script that carries it. To read the whole teardown first, at the box:
 

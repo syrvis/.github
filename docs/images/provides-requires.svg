@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 420" role="img" aria-labelledby="t d" font-family="system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13" fill="#141B3C">
+  <title id="t">Provides and requires, and the order they give</title>
+  <desc id="d">The group media requires metrics and is bound to the group observer, which provides metrics and is the floor. Inside media, the web service needs the API and the API needs the database. Stopping runs media-web, media-api, media-db, then metrics-db last. Starting runs metrics-db first, then media-db, media-api, media-web.</desc>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5L0 10z" fill="#141B3C"/></marker>
+  </defs>
+  <rect x="1" y="1" width="898" height="418" rx="18" fill="#FFFFFF" stroke="#141B3C" stroke-width="2"/>
+  <g font-family="ui-monospace, Menlo, Consolas, monospace">
+    <rect x="20" y="24" width="250" height="226" rx="16" fill="#EEF1FB" stroke="#141B3C" stroke-width="2"/>
+    <rect x="40" y="72" width="138" height="28" rx="14" fill="#2FD3A0" stroke="#141B3C" stroke-width="2"/><text x="109" y="91" text-anchor="middle">provides metrics</text>
+    <rect x="186" y="72" width="64" height="28" rx="14" fill="#FFD23F" stroke="#141B3C" stroke-width="2"/><text x="218" y="91" text-anchor="middle">floor</text>
+    <rect x="65" y="140" width="160" height="56" rx="10" fill="#FFFFFF" stroke="#141B3C" stroke-width="2"/><text x="145" y="173" text-anchor="middle">metrics-db</text>
+
+    <rect x="400" y="24" width="480" height="226" rx="16" fill="#EEF1FB" stroke="#141B3C" stroke-width="2"/>
+    <rect x="420" y="72" width="140" height="28" rx="14" fill="#E8472A" stroke="#141B3C" stroke-width="2"/><text x="490" y="91" text-anchor="middle" fill="#FFFFFF">requires metrics</text>
+    <rect x="420" y="140" width="124" height="56" rx="10" fill="#FFFFFF" stroke="#141B3C" stroke-width="2"/><text x="482" y="173" text-anchor="middle">media-db</text>
+    <rect x="578" y="140" width="124" height="56" rx="10" fill="#FFFFFF" stroke="#141B3C" stroke-width="2"/><text x="640" y="173" text-anchor="middle">media-api</text>
+    <rect x="736" y="140" width="124" height="56" rx="10" fill="#FFFFFF" stroke="#141B3C" stroke-width="2"/><text x="798" y="173" text-anchor="middle">media-web</text>
+
+    <rect x="130" y="286" width="110" height="32" rx="16" fill="#FFFFFF" stroke="#141B3C" stroke-width="2"/><text x="185" y="307" text-anchor="middle">media-web</text>
+    <rect x="280" y="286" width="110" height="32" rx="16" fill="#FFFFFF" stroke="#141B3C" stroke-width="2"/><text x="335" y="307" text-anchor="middle">media-api</text>
+    <rect x="430" y="286" width="110" height="32" rx="16" fill="#FFFFFF" stroke="#141B3C" stroke-width="2"/><text x="485" y="307" text-anchor="middle">media-db</text>
+    <rect x="580" y="286" width="170" height="32" rx="16" fill="#FFD23F" stroke="#141B3C" stroke-width="2"/><text x="665" y="307" text-anchor="middle">metrics-db, last</text>
+
+    <rect x="130" y="354" width="170" height="32" rx="16" fill="#FFD23F" stroke="#141B3C" stroke-width="2"/><text x="215" y="375" text-anchor="middle">metrics-db, first</text>
+    <rect x="340" y="354" width="110" height="32" rx="16" fill="#FFFFFF" stroke="#141B3C" stroke-width="2"/><text x="395" y="375" text-anchor="middle">media-db</text>
+    <rect x="490" y="354" width="110" height="32" rx="16" fill="#FFFFFF" stroke="#141B3C" stroke-width="2"/><text x="545" y="375" text-anchor="middle">media-api</text>
+    <rect x="640" y="354" width="110" height="32" rx="16" fill="#FFFFFF" stroke="#141B3C" stroke-width="2"/><text x="695" y="375" text-anchor="middle">media-web</text>
+  </g>
+  <text x="40" y="54" font-size="17" font-weight="700">group: observer</text>
+  <text x="40" y="232">the monitoring that watches the rest</text>
+  <text x="420" y="54" font-size="17" font-weight="700">group: media</text>
+  <text x="420" y="232">an arrow points at what a service needs</text>
+  <line x1="578" y1="168" x2="548" y2="168" stroke="#141B3C" stroke-width="2" marker-end="url(#a)"/>
+  <line x1="736" y1="168" x2="706" y2="168" stroke="#141B3C" stroke-width="2" marker-end="url(#a)"/>
+  <line x1="400" y1="130" x2="274" y2="130" stroke="#2143E6" stroke-width="3" marker-end="url(#a)"/>
+  <text x="336" y="114" text-anchor="middle" font-weight="700">needs metrics</text>
+  <text x="336" y="154" text-anchor="middle">bound to observer</text>
+
+  <text x="24" y="307" font-weight="700">Stopping</text>
+  <line x1="244" y1="302" x2="276" y2="302" stroke="#141B3C" stroke-width="2" marker-end="url(#a)"/>
+  <line x1="394" y1="302" x2="426" y2="302" stroke="#141B3C" stroke-width="2" marker-end="url(#a)"/>
+  <line x1="544" y1="302" x2="576" y2="302" stroke="#141B3C" stroke-width="2" marker-end="url(#a)"/>
+  <text x="24" y="375" font-weight="700">Starting</text>
+  <line x1="304" y1="370" x2="336" y2="370" stroke="#141B3C" stroke-width="2" marker-end="url(#a)"/>
+  <line x1="454" y1="370" x2="486" y2="370" stroke="#141B3C" stroke-width="2" marker-end="url(#a)"/>
+  <line x1="604" y1="370" x2="636" y2="370" stroke="#141B3C" stroke-width="2" marker-end="url(#a)"/>
+</svg>

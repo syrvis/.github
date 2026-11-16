@@ -1,127 +1,178 @@
 ---
-title: First steps
+title: First look
 parent: User guide
 nav_order: 2
 ---
 
-# First steps
+# First look
 
-A healthy new box answers three reads: `next` says `set-up`, `status` names the instance and the agent's version, and `verify` grades every invariant the agent watches. On a new box `verify` shows `home.symlink` broken. That row is the product's debt, not your box's fault.
+Your server is paired. `syrvis install` ended on `healthy   nothing needs you`, and from now on every call between your computer and the daemon on your server is checked both ways: your computer checks the daemon's key, and the daemon checks your computer's. This page is what you can read and do in your first ten minutes.
 
-## Check the install
+Four commands here only read and change nothing: `status`, `status --all`, `ready` and `dash`. The others stop services in order, and this page says so where each appears and shows how the services come back.
+
+`nas` is the name `syrvis install` gave your server; use the name yours printed. The names and numbers in this page's screens are example values, so your server's will differ.
+
+## Read the server
 
 ```
-syrvis --context nas next
 syrvis --context nas status
-syrvis --context nas verify
 ```
 
-What a new box shows in `verify`:
-
-- `home.symlink` reads broken. Nothing in this release installs that link yet, and the row's own sentence says so. Do not fix it by hand.
-- `boot.hook` and `rescue.binary` read ok once the root step has installed the rescue copy and its boot script. If the root step printed `not installed` for the rescue copy, these two rows say so, and running the root step again retries it.
-- `mem.ecc` can read `unknown` on a box without ECC memory. Unknown is never a pass, so the host headline may read DEGRADED. That is the rule at work, not a fault.
-
-If `next` says `not-bootstrapped`, the home was not named. Name it with the root step, then restart the agent, which reads its home only at start:
+On a server with nothing to do:
 
 ```
-sudo /var/packages/syrviscore/target/bin/syrvis-enable --home /volumeN/<share>
-sudo /usr/syno/bin/synosystemctl restart pkg-syrviscore.service
+syrvis status · nas · syrvisd 2.0.0-alpha.42 (client 0.0.0-dev)
+
+● healthy   nothing needs you
 ```
 
-If `next` adds a note about the container engine, that is the container plane below, not a failed install.
-
-## Read the box
-
-These reads change nothing. Each takes `--json`, and the exit code is the same either way.
-
-| command | what it answers |
-|---|---|
-| `syrvis --context nas status` | health, readiness and a services overview, in one glance |
-| `syrvis --context nas health` | the health verdict and its reasons |
-| `syrvis --context nas verify` | one row per host invariant: volumes, home, seam, boot |
-| `syrvis --context nas census` | roots, volumes, collisions and findings |
-| `syrvis --context nas hardware` | kernel, memory, load, CPU, arrays and rebuild progress |
-| `syrvis --context nas events` | the event stream, polled once |
-| `syrvis --context nas watch` | the live event stream, until Ctrl-C |
-| `syrvis --context nas dash` | a read-only status board in your browser, served on 127.0.0.1 |
-
-To leave out `--context nas`, set the default once in your shell:
+When something needs you, the same command puts it first, then shows each service against what you declared for it:
 
 ```
-export SYRVIS_CONTEXT=nas
+syrvis status · lab-ops
+
+● unhealthy   a service diverges from its intent
+
+  ! power off  not safe yet: 1 check holds it; one volume is not writable,
+               so a stop could lose the queue's last writes
+
+conformance DIVERGING
+  (1 conforming · 1 transitioning · 1 diverging)
+! search-indexer-of-the-archive  running  declared          exited    behind  DIVERGING      -
+→ queue                          running  floor (deferred)  starting  -       TRANSITIONING  start 40s/120s
+  1 more conforming
+
+  more: --all for every check, --json for the evidence
 ```
 
-## Turn on the container plane
+Each row of the conformance table is one service, and after its name the columns read:
 
-Syrvis runs services through Container Manager. Install Container Manager from Package Center; on DSM 7.0 and 7.1 it is called Docker. Then run two commands at the box:
+- **intent**: what the service should be doing, here `running`.
+- **source**: where that intent comes from, such as your declaration or the floor (explained under the drain below).
+- **observed**: what the server actually sees the service doing.
+- **drift**: how far the observed state lags the intent.
+- **verdict**: conforming, transitioning or diverging.
 
-```
-sudo /var/packages/syrviscore/target/bin/syrvis-enable --docker-socket /var/run/docker.sock
-sudo /usr/syno/bin/synosystemctl restart pkg-syrviscore.service
-```
+Health in syrvis means one thing: whether the server matches what you declared. A fact the server cannot answer reads `unknown`, never ok, so a check that cannot be read never passes quietly.
 
-On a box already serving, the first command declares the engine and restarts nothing. It ends on `NOT DONE: what this run wrote ... is NOT in service`, names the restart, and exits non-zero. That is the product saying the restart is owed, and when to interrupt the box is yours to choose. Without the restart the engine stays declared and unused. If you passed `--docker-socket` in the root step, skip this section.
-
-## Turn on self-repair
-
-The agent re-reads the box's invariants every thirty minutes. By default it reports drift and repairs nothing. You can arm repair for a named list. This release accepts two names, `home.symlink` and `socket.perms`, and refuses any other before writing a byte:
+To list every check, the passing ones too:
 
 ```
-sudo /var/packages/syrviscore/target/bin/syrvis-enable --arm-compensation home.symlink,socket.perms
-sudo /usr/syno/bin/synosystemctl restart pkg-syrviscore.service
+syrvis --context nas status --all
 ```
 
-The first command ends on `NOT DONE` as the container plane's does. Not yet observed: whether `home.symlink` clears after this. Treat the section as optional, and expect `verify` to look the same afterwards.
+## The console
 
-## Add a second computer
+```
+syrvis --context nas dash
+```
 
-Each computer holds its own key under its own name, and needs an address that does not change.
+This opens the console, a read-only status page, in a browser on your computer. It reads through the same connection as your other commands, and nothing new is exposed on the server. `--port N` serves it on 127.0.0.1 at port N. On that address the link syrvis prints carries a handle made for this run, and the page answers only under it. Ctrl-C stops it.
 
-1. Install the client on the new computer, as the install's [step 1](install.md#step-1-get-the-client) does.
-2. On the new computer, mint its key under a new name:
-   ```
-   syrvis api enroll-request --context nas-2 --grade operator
-   ```
-3. At the box, enrol the paste-line it printed:
-   ```
-   sudo /usr/local/bin/syrvis seat enroll --client "<paste-line>"
-   ```
-4. At the box, print the pin line:
-   ```
-   sudo /usr/local/libexec/syrvisd/current/syrvisd api fingerprint --pin-line
-   ```
-5. On the new computer, run that line with `nas-2` in place of `<name>`:
-   ```
-   syrvis context pin nas-2 <nas-ip>:7447 <64 hex>
-   ```
+## Is it safe to
 
-`syrvis --context nas seat list` shows every key the box admits: at what grade, from where, and until when.
+Before you stop things, ask the server whether it is ready:
 
-## A planned reboot
+```
+syrvis --context nas ready
+```
 
-`syrvis reboot` runs the whole planned reboot as one procedure the box owns. It declares the drain and waits for the shutdown gate, asks you to confirm the halt, then waits for the reboot you perform. After the boot it releases the drain and waits for the return-to-service gates.
+```
+readiness  phase running · intent in-service
+
+✓ drained     every member stops inside its budget
+    ✓ drain.budget
+✗ shutdown    one volume is not writable, so a stop could lose the queue's last
+              writes
+    ! vol.writable         /data/queue answered read-only
+    ✓ drain.budget
+✓ in-service  the fleet is up
+```
+
+There are three questions: can the services be drained, can the server shut down, and is it back in service. Each comes with its reasons.
+
+## Stop things in order, and bring them back
+
+A drain is how syrvis stops services: it works out the order they stop in, then stops them in that order. What depends on a service stops before the service itself. Within each wave at most two stop at once by default, so Container Manager is not overloaded. The floor, the services that watch over the rest such as your monitoring, stops last and starts first, so the stop and the return are both watched. A drain can cover the whole server, one volume or one service, among other scopes.
+
+To take down a service called `web`, together with what depends on it:
+
+```
+syrvis --context nas drain service --selector web --reason "image upgrade" --dependants cascade
+```
+
+```
+✓ drain drn-21 declared (service/web)
+  members: web, worker
+  stop waves: [worker] → [web]
+  note: this drain will take ~22m; a syrvisd restart mid-drain abandons the job (the stops complete in dockerd; re-declare to resume)
+    this plan's own clock is 1320s; syrvisd's exit budget is 90s, and the two are independent
+  stop job: job-drain-stop-21 (running), watch with: syrvis job job-drain-stop-21 --watch
+```
+
+The drained services stay down until you release the drain by its id:
+
+```
+syrvis --context nas release drn-21
+```
+
+The release brings them back in the reverse order: the floor first, then what others depend on, then what depends on it. Each one must pass its readiness check before the next starts. In this release the services within one wave start one at a time.
+
+A drain that would close a loop of needs refuses and stops nothing. So does a narrow drain that would take the floor down.
+
+**A planned reboot.** For a DSM update or any other restart:
 
 ```
 syrvis --context nas reboot
 ```
 
-Ctrl-C leaves the procedure standing, and the same command attaches to it again. A failure prints its recovery. Not yet measured: the planned reboot end to end on a box at this release.
+syrvis drains the whole server, waits until it is ready to shut down, and asks you to confirm. In this release you then press restart in DSM yourself. After the boot, syrvis releases the drain and waits until the server is back in service. The procedure keeps a record as it goes, so it picks up after the reboot it caused. The planned reboot end to end is not yet measured at this release.
+
+**A planned power-off.** To turn the server off with its services stopped in order:
+
+```
+syrvis --context nas power-off
+```
+
+```
+→ wf-power-off-3-1
+  ✓   created
+  · 1 drain
+  ✓ 1 drain
+  · 2 ready-for-shutdown
+  ✓ 2 ready-for-shutdown
+  ✓ 3 confirm-poweroff
+  ✓ 4 poweroff
+  ✓ 5 restore
+  ✓ 6 in-service
+
+✓ the power-off is done; the fleet is back in service
+```
+
+The reboot and the power-off use the same drain and the same restore as the commands above, so a fix to the stop order reaches all of them.
+
+**On UPS battery.** When the power goes out, syrvis declares the same drain you would. It works out how long that drain needs from the services you declared,, and waits while the battery can afford the wait, counting less runtime than your UPS reports so there is a margin. Then it drains the server and powers it off, with no confirm. If the power comes back and holds, it releases the drain. When you add a service, the shutdown time grows with it, and nobody edits a shutdown script. If your declared groups of services do not fit together, the battery stop still runs, in the order of each service's own dependencies, and says so.
+
+The ordered start covers a start syrvis runs itself: after a drain, a reboot, a power-off or a battery stop. After a crash, Docker restarts containers by its own policy first.
+
+## A second computer
+
+`seat enroll` admits another computer's key as a seat, which is one key the server lets in, at a grade that defaults to read-only. To see every seat, its grade, where it may connect from and until when:
+
+```
+syrvis --context nas seat list
+```
+
+A one-time code that pairs a second computer in one step is designed and not built yet, so for now [Commands](commands.md) carries the full form of `seat enroll`.
 
 ## Run a service
 
-The box runs services as containers, converged toward a deploy document you declare with OpenTofu and the syrvis provider. A service needs the container plane, OpenTofu 1.12.6 and the provider on your computer, a placement registry on the box, and an account of its own. This guide does not yet carry the provider's install or the deploy walk.
+In this release a service reaches your server as a deployment. You stage a bundle that describes it, read the plan, and apply it. `revisions` lists what you have applied, and `rollback` returns a deployment to an earlier revision. A deployment is checked against your declared groups when you stage it, and one that does not fit is refused before anything on the server changes. Container Manager must be installed from Package Center first.
 
-The account is made at the box, and the step prints the uid to declare as the service's `tuning.user`:
+A full walk through a first service is not in the guide yet.
 
-```
-sudo /var/packages/syrviscore/target/bin/syrvis-enable --service-user example-svc
-```
+## Where next
 
-With an operator key, the same act runs from your computer:
-
-```
-syrvis --context nas account ensure example-svc
-```
-
-Either refuses an account that can log in, is in administrators, is uid 0, has a uid under 1026, or is the package's own user. The refusal names another name to use.
+- [Upgrade and uninstall](upgrade-and-uninstall.md)
+- [Commands](commands.md)
+- [Troubleshooting](troubleshooting.md)

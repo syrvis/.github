@@ -45,7 +45,7 @@ The screens say "box" where this guide says "the server". The names, addresses, 
 
 ## Three rules the product keeps
 
-- Every refusal says what it refused, why, and what it did not change, and it ends on the command that finishes the job. A refusal that does not is a defect, and worth reporting.
+- Every refusal says what it refused, why, and what it did not change, and it ends on the command that finishes the job. A refusal that does not is a defect, and worth [reporting](https://github.com/syrvis/.github/blob/main/CONTRIBUTING.md#report-a-bug).
 - Unknown is never a pass. A fact the server cannot read grades unknown, never ok.
 - Health is whether the server matches what you declared. Being up is not enough.
 

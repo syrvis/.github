@@ -6,7 +6,7 @@ nav_order: 4
 
 # Troubleshooting
 
-Every refusal Syrvis prints names what it refused, why, and what it did not change, and it ends on the command that finishes the job: run that command. When your computer cannot reach the server at all, start with `syrvis context test nas`. A refusal that names no recovery is a defect; report it.
+Every refusal Syrvis prints names what it refused, why, and what it did not change, and it ends on the command that finishes the job: run that command. When your computer cannot reach the server at all, start with `syrvis context test nas`. A refusal that names no recovery is a defect; [report it](https://github.com/syrvis/.github/blob/main/CONTRIBUTING.md#report-a-bug).
 
 ## The connection
 
@@ -18,7 +18,7 @@ It walks the connection layer by layer, from what the context holds: the context
 
 ## Refusals and their recoveries
 
-One refusal has no recovery at the server. When Package Center refuses the install with only an error number, the package is at fault, nothing of Syrvis ran, and nothing was left behind. Stop, and report the number, with the last lines of `/var/log/synopkg.log` if you have SSH.
+One refusal has no recovery at the server. When Package Center refuses the install with only an error number, the package is at fault, nothing of Syrvis ran, and nothing was left behind. Stop, and [report the number](https://github.com/syrvis/.github/blob/main/CONTRIBUTING.md#report-a-bug), with the last lines of `/var/log/synopkg.log` if you have SSH.
 
 | what you see | what it means | what to do |
 |---|---|---|

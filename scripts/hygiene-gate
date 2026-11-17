@@ -1,0 +1,178 @@
+#!/usr/bin/python3
+"""hygiene-gate: the Makefile's hygiene gate, every group judged.
+
+Runs the vendored scanner, scripts/hygiene, once over the working tree with
+`--json`, and judges every group it reports: a file outside .hygiene-allow in
+any group turns the gate red, each such group printed with its paths. A row
+of .hygiene-allow that matches no file in the tree turns it red too, each such
+row printed: an exception can outlive the file it was written for, so the list
+names only what the tree holds. The rows and the tree are read
+by the scanner's own functions (load_allow, glob_match, files), one computation.
+
+The scanner reads the owner's private list from outside the repository
+(`$AGENTIK_HYGIENE_PRIVATE` when set and not empty, else
+`${XDG_CONFIG_HOME:-$HOME/.config}/agentik/hygiene-private.tsv`). That list is
+the portfolio's, and it holds patterns that match this product's own names,
+given here as WORD arguments (the Makefile's HYGIENE_OWN): for the other repos
+they are private words, here they are the module path, the binary and the
+platform every package is written for. Before the scan this copies the list to
+a private temporary file, each line whose pattern matches a WORD whole (case
+ignored) left blank, so the line numbers stay the list's, and points the
+scanner at the copy. A pattern naming more than the bare word is kept. Nothing
+from the list is printed, only how many lines were left out. With no readable
+list the scanner runs as it is and says so itself (the generic groups only).
+
+Usage: hygiene-gate [WORD...]
+Exit codes report the task, not the content (the agentik guide): 0 when every
+group reads 0 files outside .hygiene-allow and every row matches a file, 1 when
+one does not (a judged finding), 2 when the scan did not finish (the scanner
+exited above 1, its JSON could not be read, the copy could not be written, or
+the rows or the tree could not be read). Stdlib only.
+"""
+import importlib.machinery
+import importlib.util
+import json
+import os
+import re
+import subprocess
+import sys
+import tempfile
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+SCANNER = os.path.join(ROOT, "scripts", "hygiene")
+PRIVATE_ENV = "AGENTIK_HYGIENE_PRIVATE"
+
+# What a hit in each generic group holds; a group from the private list holds one
+# of the owner's private words.
+HOLDS = {
+    "home": "a home directory's path",
+    "lan": "a private-range address or a .local host",
+    "sibling": "an agentik sibling tool's name",
+    "secret": "a secret's shape",
+    "email": "an email address",
+    "renamed": "a name the agentik tools had before agentik-r1",
+}
+
+
+def private_path():
+    """The scanner's own resolution of the private list's path."""
+    path = os.environ.get(PRIVATE_ENV)
+    if path:
+        return path
+    base = os.environ.get("XDG_CONFIG_HOME") or os.path.join(os.path.expanduser("~"), ".config")
+    return os.path.join(base, "agentik", "hygiene-private.tsv")
+
+
+def own_copy(words, out):
+    """Write the list to `out` with the lines naming `words` blanked; the count
+    blanked, or None when there is no readable list."""
+    try:
+        with open(private_path(), encoding="utf-8") as fh:
+            lines = fh.read().split("\n")
+    except (OSError, UnicodeDecodeError):
+        return None
+    dropped = 0
+    kept = []
+    for line in lines:
+        group, sep, regex = line.partition("\t")
+        if sep and regex and not line.lstrip().startswith("#"):
+            try:
+                if any(re.fullmatch(regex, w, re.IGNORECASE) for w in words):
+                    line = ""
+                    dropped += 1
+            except re.error:
+                pass  # the scanner reports a bad line by its number, never its text
+        kept.append(line)
+    out.write("\n".join(kept))
+    out.flush()
+    return dropped
+
+
+def judge(raw):
+    """The red groups as [(group, [paths])], or raise ValueError on a JSON the gate cannot read."""
+    doc = json.loads(raw)
+    groups, rows = doc["groups"], doc["files"]
+    if not isinstance(groups, dict) or not isinstance(rows, list):
+        raise ValueError("unexpected shape")
+    red = []
+    for name in sorted(groups):
+        paths = sorted(r["path"] for r in rows if r["group"] == name)
+        if len(paths) != groups[name]["outside_files"]:
+            raise ValueError("counts disagree")
+        if paths:
+            red.append((name, paths))
+    return red, sorted(groups)
+
+
+def dead_rows():
+    """The rows of .hygiene-allow, as `glob: group,...`, whose glob matches no file the
+    scanner reads; raises on a list or a tree the scanner cannot read."""
+    loader = importlib.machinery.SourceFileLoader("hygiene", SCANNER)
+    scanner = importlib.util.module_from_spec(importlib.util.spec_from_loader("hygiene", loader))
+    loader.exec_module(scanner)
+    entries = scanner.load_allow(os.path.join(ROOT, ".hygiene-allow"), False, (), False)
+    tree = scanner.files(ROOT)
+    return ["%s: %s" % (glob, ",".join(sorted(names))) for glob, names in entries
+            if not any(scanner.glob_match(p, glob) for p in tree)]
+
+
+def main(argv):
+    words = argv[1:]
+    env = dict(os.environ)
+    with tempfile.TemporaryDirectory(prefix="hygiene-gate-") as tmp:
+        dropped = None
+        if words:
+            copy = os.path.join(tmp, "private.tsv")
+            try:
+                fd = os.open(copy, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+                with os.fdopen(fd, "w", encoding="utf-8") as out:
+                    dropped = own_copy(words, out)
+            except OSError as exc:
+                sys.stderr.write("hygiene: the private list's copy could not be written (%s), so the scan did not run\n"
+                                 % type(exc).__name__)
+                return 2
+            if dropped is not None:
+                env[PRIVATE_ENV] = copy
+        proc = subprocess.run(["/usr/bin/python3", "-I", SCANNER, "--json"], cwd=ROOT, env=env,
+                              stdout=subprocess.PIPE)
+    if proc.returncode > 1 or proc.returncode < 0:
+        sys.stderr.write("hygiene: scripts/hygiene --json exited %d, so the scan did not finish\n" % proc.returncode)
+        return 2
+    try:
+        red, names = judge(proc.stdout.decode("utf-8"))
+    except (ValueError, KeyError, TypeError, UnicodeDecodeError):
+        sys.stderr.write("hygiene: the scanner's JSON could not be read, so the scan did not finish\n")
+        return 2
+    if bool(red) != (proc.returncode == 1):
+        sys.stderr.write("hygiene: the scanner's exit %d and its JSON disagree, so the scan did not finish\n"
+                         % proc.returncode)
+        return 2
+    try:
+        dead = dead_rows()
+    except Exception as exc:  # the scanner's UsageError and Failure, or its import
+        sys.stderr.write("hygiene: the rows of .hygiene-allow or the tree could not be read (%s), so the scan did not finish\n"
+                         % type(exc).__name__)
+        return 2
+    if dropped:
+        print("hygiene: the private list's %d line(s) naming this product (%s) were not applied"
+              % (dropped, ", ".join(words)))
+        sys.stdout.flush()
+    if red:
+        for name, paths in red:
+            sys.stderr.write("hygiene: the %s group reads %d files outside .hygiene-allow, each holding %s:\n"
+                             % (name, len(paths), HOLDS.get(name, "one of the private list's words")))
+            for p in paths:
+                sys.stderr.write("      %s\n" % p)
+    if dead:
+        sys.stderr.write("hygiene: .hygiene-allow holds %d row(s) that match no file in the tree; delete each with its reason:\n"
+                         % len(dead))
+        for row in dead:
+            sys.stderr.write("      %s\n" % row)
+    if red or dead:
+        return 1
+    print("hygiene: every group reads 0 files outside .hygiene-allow (judged: %s)" % ", ".join(names))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv))

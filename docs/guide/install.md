@@ -28,7 +28,7 @@ The names, addresses, versions and keys in this page's screens are example value
 | a DSM administrator account | for the Manual Install and the Task Scheduler task. SSH is not needed |
 | Container Manager, only to run services | the install itself does not need it |
 | your computer on the same network as the server | `syrvis` finds the installer on your local network |
-| `syrvis` v0.1.12 on your computer | it installs the server package 2.0.0-alpha.72 |
+| `syrvis` v0.1.13 on your computer | it installs the server package 2.0.0-alpha.72 |
 
 The package's CPU families are `x86_64 avoton v1000 apollolake geminilake denverton broadwellnk r1000`. Your model's family is on the CPU line of Control Panel > Info Center > General. If yours is not in the list, ask for a build with it added before you install.
 
@@ -190,7 +190,7 @@ As root, the step installs SyrvisCore from the file that was checked, starts the
 
 ```screen
 Installed SyrvisCore 2.0.0 on nas in 14m56s. All 5 of your steps done.
-syrvis status · nas · syrvisd 2.0.0-alpha.42 (client 0.0.0-dev)
+syrvis status · nas · syrvisd 2.0.0 (client 0.0.0-dev)
 
 ● healthy   nothing needs you
 ```
@@ -250,7 +250,7 @@ syrvis --context nas status
 A healthy server answers:
 
 ```screen
-syrvis status · nas · syrvisd 2.0.0-alpha.42 (client 0.0.0-dev)
+syrvis status · nas · syrvisd 2.0.0 (client 0.0.0-dev)
 
 ● healthy   nothing needs you
 ```

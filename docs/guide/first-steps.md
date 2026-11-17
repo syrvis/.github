@@ -21,7 +21,7 @@ syrvis --context nas status
 On a server with nothing to do:
 
 ```screen
-syrvis status · nas · syrvisd 2.0.0-alpha.42 (client 0.0.0-dev)
+syrvis status · nas · syrvisd 2.0.0 (client 0.0.0-dev)
 
 ● healthy   nothing needs you
 ```

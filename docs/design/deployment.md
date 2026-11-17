@@ -6,11 +6,11 @@ nav_order: 5
 
 # Deployment
 
-syrvis-deploy is the part of the daemon that turns a declared fleet into running containers and back. It keeps three guarantees: desired state has one address at every instant, across any crash; a drain preempts every deploy it covers; and nothing the fleet runs, or could roll back to, is erased. Eight TLA+ properties state its drain, stop-order, one-container and retention rules, each checked beside a broken twin that must fail. The October 2026 review found the model sound with gaps and filed ten findings. A Go test then showed the first to be a real defect, which the daemon's code shared. Main now fixes it in both, and fixes five more of the findings in the model.
+syrvis-deploy is the part of the daemon that turns a declared fleet into running containers and back. It keeps three guarantees: what the fleet is declared to run has one address at every instant, across any crash; a drain preempts every deploy it covers; and nothing the fleet runs, or could roll back to, is erased. Eight TLA+ properties state its drain, stop-order, one-container and retention rules. TLA+ specifies a system as a state machine, and its model checker, TLC, explores every reachable state. Each property is checked beside a broken twin, a deliberately wrong copy of the model that must fail it. The October 2026 review found the model sound with gaps and filed ten findings. A Go test then showed the first to be a real defect, which the daemon's code shared. Main now fixes it in both, and fixes five more of the findings in the model.
 
 ## Where it lives
 
-syrvis-deploy is a Go library that the daemon `syrvisd` embeds on the box, with no process or socket of its own. It reaches Docker only through the `Containers` and `Stopper` interfaces (`seams.go`). It is tagged `v0.1.1` and requires five [commons](commons.md) modules at `v0.1.1`. The daemon still builds from its own copy of these packages; moving it onto `v0.1.1` is planned. It serves ten methods:
+syrvis-deploy is a Go library that the daemon `syrvisd` embeds on the server; it has no process or socket of its own. It reaches Docker only through the `Containers` and `Stopper` interfaces (`seams.go`). It is tagged `v0.1.1` and requires five [commons](commons.md) modules at `v0.1.1`. The daemon still builds from its own copy of these packages; moving it onto `v0.1.1` is planned. It serves ten methods:
 
 | method | what it does |
 |---|---|
@@ -25,13 +25,13 @@ syrvis-deploy is a Go library that the daemon `syrvisd` embeds on the box, with 
 | `Place.Move` | moves a service's data tree, with a dry run (confirmed) |
 | `Task.Run` | runs a declared task unit by name |
 
-A confirmed call carries a minted token that the dispatcher verifies and spends before the handler runs. Apply, rollback and prune also ask the lifecycle table first, so each refuses while the box drains, naming the state and the recovery.
+A confirmed call carries a minted token, which the dispatcher verifies and spends before the handler runs. Apply, rollback and prune also ask the lifecycle table first, so each refuses while the server drains and names the state and the recovery.
 
 ## Revisions and the plan
 
-`Deploy.Stage` turns a bundle into a revision whose id is a digest of the bundle with every secret replaced by a fixed placeholder, so staging cannot test a guessed secret (`internal/deploy/canon.go`).
+`Deploy.Stage` turns a bundle into a revision. The revision's id is a digest of the bundle with every secret replaced by a fixed placeholder, so staging cannot be used to test a guessed secret (`internal/deploy/canon.go`).
 
-The plan is a pure function of the world, the revision, the drains and what each container last saw (`internal/deploy/plan.go`). For each service it picks one rung: recreate, restart, start, stop, none, create, land, or a refusal. It pairs a cascade stop and start for each running hard dependant of a recreated service, then orders stops dependants first and bring-up dependencies first, gated on readiness. It never removes: an undeclared container is reported as an orphan, for `Deploy.Prune`. Drain coverage is read before any rung, so a drained service is landed (created if absent, never started) or refused.
+The plan is a pure function of the world, the revision, the drains and what each container last saw (`internal/deploy/plan.go`). For each service it picks one rung: recreate, restart, start, stop, none, create, land, or a refusal. For each running hard dependant of a recreated service it pairs a cascade stop and start. It then orders stops dependants first and bring-up dependencies first, gated on readiness. The plan never removes anything: an undeclared container is reported as an orphan, for `Deploy.Prune`. Drain coverage is read before any rung, so a drained service is landed (created if absent, never started) or refused.
 
 An apply verifies the revision's bytes against its id, pulls missing images, flips `current`, converges, and writes exactly one history line however it ends (`internal/deploy/exec.go`). The pull comes first, so a bad image reference fails with nothing changed. A spec change that drops a data mount recreates without a refusal today; a guard for it is planned.
 
@@ -49,11 +49,11 @@ An apply verifies the revision's bytes against its id, pulls missing images, fli
   history.jsonl    append-only: seq, id, at, by, action, outcome
 ```
 
-Two steps change what the store declares, and each ends in one rename (`internal/deploy/deploy.go`). Staging writes `revisions/.staging-<id>/`, fsyncs every file and directory, then renames it to `revisions/<id>/`. The flip writes a temporary file, fsyncs it, renames it over `current` and fsyncs the directory. So a revision directory that exists is whole, and an interrupted apply needs no undo log. `current` is a file, not a symlink, because a symlink cannot be fsynced. Every listing skips dot-prefixed names, so staging directories and tombstones are invisible by construction.
+Two steps change what the store declares, and each ends in one rename (`internal/deploy/deploy.go`). Staging writes `revisions/.staging-<id>/`, fsyncs every file and directory (forces it to stable storage), then renames it to `revisions/<id>/`. The flip writes a temporary file, fsyncs it, renames it over `current` and fsyncs the directory. A revision directory that exists is therefore whole, and an interrupted apply needs no undo log. `current` is a regular file because a symlink cannot be fsynced. Every listing skips dot-prefixed names, so staging directories and tombstones are invisible by construction.
 
 ## Declaring a drain
 
-A drain is the one way to suppress a service, and no push of desired state undoes it. `Drain.Declare` takes a scope (`device`, `volume`, `plane`, `set` or `service`), a class, a reason and a policy (`deployapi/drain.go`). The drain stores its selector, never a member list, so its members are resolved each time it is read.
+A drain is the one way to suppress a service, and no push of a new revision undoes it. `Drain.Declare` takes a scope (`device`, `volume`, `plane`, `set` or `service`), a class, a reason and a policy (`deployapi/drain.go`). The drain stores its selector, never a member list, so its members are resolved each time it is read.
 
 | policy field | values | default |
 |---|---|---|
@@ -64,43 +64,45 @@ A drain is the one way to suppress a service, and no push of desired state undoe
 | `on_boot` | `hold`, `converge` | `hold` |
 | `on_restore` | `hold`, `restore`, a power drain only | `hold` |
 
-An expiry is a review deadline, not a timer. A drain moves through `draining`, `drained` and `restoring` to `released`, or to `expired`, and suppresses its members until `released`.
+A drain moves through `draining`, `drained` and `restoring` to `released`, or to `expired`, and suppresses its members until `released`. An expiry is a review deadline; it does not act as a timer.
 
-`Declare` refuses when drain writes are blocked, and refuses a stop budget on anything but a device drain (`declare.go`). A second device drain joins the standing one or refuses, naming it. Then the declare cancels the running deploys the drain covers, through each job's context, and starts the stop: a drain that arrives during a long image pull cancels the pull. At `v0.1.0` the stop does not wait for a cancelled deploy's last call to land, the defect under [Provability](#what-the-october-2026-review-found). On main, the declare records the jobs it cancelled. After its waves, the stop waits a bounded time for them to end, then checks once more each member it skipped or stopped, and stops any that came up. When a device drain is written, the service asks the lifecycle table again under its lock, so a hand drain that a starting reboot overtook refuses and writes nothing.
+`Declare` refuses when drain writes are blocked, and refuses a stop budget on anything but a device drain (`declare.go`). A second device drain joins the standing one or refuses, naming it. Then the declare cancels the running deploys the drain covers, through each job's context, and starts the stop; a drain that arrives during a long image pull cancels the pull. At `v0.1.0` the stop does not wait for a cancelled deploy's last call to land, which is the defect under [Provability](#what-the-october-2026-review-found). On main, the declare records the jobs it cancelled. After its waves, the stop waits a bounded time for those jobs to end, then checks once more each member it skipped or stopped, and stops any that came up. When a device drain is written, the service asks the lifecycle table again under its lock, so a hand drain that a starting reboot overtook refuses and writes nothing.
 
 ## Stop and start order
 
-`PlanStop` is pure, and a separate executor runs its plan (`internal/converge/drain.go`):
+`PlanStop` is a pure function that computes the stop plan, and a separate executor runs it (`internal/converge/drain.go`). The plan follows four rules:
 
-1. The floor, the observability services, stops last: the alarm must not stop with what it alarms about. A drain narrower than the device that reaches the floor refuses `floor_in_scope`.
-2. The other members stop in reverse dependency waves, dependants first. A cycle refuses `dependency_cycle`, naming its members.
-3. Outside dependants follow the policy: `refuse` names them, `cascade` pulls in hard dependants transitively, `strand` reports soft ones as blocked.
+1. The floor, the observability services, stops last, because the alarm must not stop with what it alarms about. A drain narrower than the device that reaches the floor refuses with `floor_in_scope`.
+2. The other members stop in reverse dependency waves, dependants first. A cycle refuses with `dependency_cycle` and names its members.
+3. Outside dependants follow the policy: `refuse` names them, `cascade` pulls in hard dependants transitively, and `strand` reports soft ones as blocked.
 4. A device drain stops declared virtual machines in one wave just before the floor.
 
-Each member climbs a five-rung ladder on one absolute clock (`drain_exec.go`): request the stop, poll until down or out of time, send one SIGKILL if it is still up, verify the kill landed, report. The plan's budget bounds the waves at the executor's parallelism. In the model's fleet, `app1` and `app2` depend on `db`, and the floor member `monitor` does too: a device drain stops `{app1, app2}`, `{db}`, then `{monitor}`, within 7 seconds (2 + 3 + 2).
+Each member climbs a five-rung ladder on one absolute clock (`drain_exec.go`): request the stop, poll until down or out of time, send one SIGKILL if it is still up, verify the kill landed, report. The plan's budget bounds the waves at the executor's parallelism. In the model's fleet, `app1` and `app2` depend on `db`, and so does the floor member `monitor`. A device drain stops `{app1, app2}`, then `{db}`, then `{monitor}`, within 7 seconds (2 + 3 + 2).
 
-`Drain.Release` writes the release, then starts the restore (`release.go`). The restore mirrors the stop: dependencies first, each wave waiting until the last is ready, and on a device restore the floor first (`rehydrate.go`).
+`Drain.Release` writes the release, then starts the restore (`release.go`). The restore mirrors the stop: dependencies come first, each wave waits until the last is ready, and a device restore starts the floor first (`rehydrate.go`).
 
 ## Prune and reap
 
-Three things remove, each only what nothing declares or needs:
+Three paths remove, and each removes only what nothing declares or needs:
 
-- `Deploy.Prune` stops and removes named orphans, managed containers the revision does not declare.
+- `Deploy.Prune` stops and removes named orphans: managed containers the revision does not declare.
 - The retention pass keeps the newest N revisions (10 by default), `current` and the rollback target, and renames the rest into a tombstone namespace (`internal/deploy/retention.go`).
 - The reaper erases the tombstones (`internal/deploy/reap.go`).
 
-The rollback target is the newest successful revision that is not `current` and still exists; the pass and `Deploy.Rollback` call one function for it, so they cannot disagree. A pass runs at the end of every job that holds the mutating slot, after each stage, and when free space runs low. If it cannot read the listing, `current` or the history, it renames nothing: unknown is never a pass.
+The rollback target is the newest successful revision that is not `current` and still exists. The pass and `Deploy.Rollback` compute it with one function, so they cannot disagree. A pass runs at the end of every job that holds the mutating slot, after each stage, and when free space runs low. If it cannot read the listing, `current` or the history, it renames nothing: unknown is never a pass.
 
 ## The tombstone before the erase
+
+Removal takes two steps, a rename and then an erase:
 
 1. The pass renames each victim to `.collecting-<seq>-<id>` under the store's lock, then fsyncs the directory once.
 2. The reaper, off every request and job path, fsyncs that directory before each sweep's first erase, then erases one tree at a time, never taking the store's lock.
 
-A power cut mid-erase leaves a torn tombstone, which no reader lists and which refuses nothing; a torn directory under a revision id would refuse every later stage. The reaper retries a failed erase on its next run and reports erased and outstanding ids.
+The split is for crashes. A power cut mid-erase leaves a torn tombstone, which no reader lists and which refuses nothing; a torn directory under a revision id would refuse every later stage. The reaper retries a failed erase on its next run and reports erased and outstanding ids.
 
 ## Provability
 
-`specs/Deploy.tla` (875 lines) models, over a synthetic fleet of four, the stop planner and each member's ladder on a clock, one service's containers through a recreate from its five crash states with three revisions under retention and a crash, and a device drain declared mid-flight with its cancellations and admission gate. `specs/DeployBroken.tla` holds fifteen broken twins, and the other modules are one-line shims that name each configuration. The model assumes, without proving, that the lifecycle refuses deploy work under a device drain (a cell the lifecycle's own model checks; see [Commons](commons.md#provability)) and that a crash keeping an erase keeps the rename before it.
+`specs/Deploy.tla` (875 lines) models three things over a synthetic fleet of four: the stop planner and each member's ladder on a clock; one service's containers through a recreate from its five crash states, with three revisions under retention and a crash; and a device drain declared mid-flight with its cancellations and admission gate. `specs/DeployBroken.tla` holds fifteen broken twins, and the other modules are one-line shims that name each configuration. The model assumes two things without proving them: that the lifecycle refuses deploy work under a device drain (a cell the lifecycle's own model checks; see [Commons](commons.md#provability)), and that a crash which keeps an erase also keeps the rename before it.
 
 | property | what it says |
 |---|---|
@@ -113,22 +115,24 @@ A power cut mid-erase leaves a torn tombstone, which no reader lists and which r
 | `NoApplyUnderDeviceDrain` | no apply, rollback or prune is admitted under the device drain, and under it no reconcile steps beyond a cancelled job's last step and converge's land |
 | `StopEnds` | every stop plan ends within its budget, even if a container never dies (liveness) |
 
-`make verify-spec` runs five proofs and the fifteen twins in 63.21 s on a development Mac, the largest proof at 8,514,463 distinct states; two longer runs go before each tag: two crashes at 20,364,481 states, and the store under a service drain at 23,105,292. The scenarios, in plain words, are under [Scenarios: Deployment](../provability/scenarios.md#deployment).
+`make verify-spec` runs five proofs and the fifteen twins in 63.21 s on a development Mac; the largest proof reaches 8,514,463 distinct states. Two longer runs go before each tag: two crashes at 20,364,481 states, and the store under a service drain at 23,105,292. The scenarios, in plain words, are under [Scenarios: Deployment](../provability/scenarios.md#deployment).
 
-The proofs are kept truthful four ways:
+Four checks keep the proofs truthful:
 
-- Every property has a broken twin that must fail on it, and the runner passes a twin only when TLC names that property, so no proof is green by vacuity.
-- `specs/mutants.tsv` holds 15 edits to the actions, each of which must turn a proof red; the 19 that stayed green are gone, and `specs/copies_test.go` holds each property's copy of an action to its original in `make check`.
-- The proofs check deadlock, so any stuck state but the one allowed end fails.
-- Eleven Go tests, each named for its property, drive the library over fakes. `make check` also replays 2,000 behaviours TLC simulates from the model against the library (`verify-trace`), and `conform_test.go` holds the Go's words and the lifecycle's cells equal to the model's.
+- Every property has a broken twin that must fail on it, and the runner passes a twin only when TLC names that property, so no proof is green by vacuity (holding only because no state reaches what it constrains).
+- `specs/mutants.tsv` holds 15 edits to the actions, each of which must turn a proof red; the 19 that stayed green are gone. `specs/copies_test.go` holds each property's copy of an action to its original in `make check`.
+- The proofs check deadlock, so any stuck state other than the one allowed end fails.
+- Eleven Go tests, each named for its property, drive the library over fakes. `make check` also replays 2,000 behaviours that TLC simulates from the model against the library (`verify-trace`), and `conform_test.go` holds the Go's words and the lifecycle's cells equal to the model's.
 
 ### What the October 2026 review found
 
-No module is stale, every configuration runs, and each twin fails only on its named property. The review filed all ten findings at the lowest of four severity levels, the first to rise if a Go test reproduced it.
+The review found no stale module; every configuration runs, and each twin fails only on its named property. It filed all ten findings at the lowest of four severity levels, the first to rise if a Go test reproduced it.
 
-A Go test did, failing on five runs of five. A declare cancels the deploys it covers and starts the stop at once, and the stopper lists only running containers. So a container a cancelled deploy was starting comes up after that list and runs under the drain, while the stop reports every member stopped. It does not reach the power-off, which reads the fleet first and halts while a managed container runs; the harm is a broken drain and a stop report that is wrong. The model allowed that order, but no property read the containers against the drain. The daemon's own copy of this code had the same window. The finding rose to the most severe level, and it is fixed on main in both copies, the daemon's first. The declare records the jobs it cancelled. After its waves, the stop waits for them to end, bounded by the engine's call timeout, then checks once more each member it skipped or stopped, and stops any that came up. The Go test passes five runs of five, beside a second test for a cancelled restore. The daemon's copy now records, the same way, the restores its UPS watcher cancels before its own declare. A start that landed after that last check could still run under the drain, and main has fixed that narrower window too, in both copies: the stop now waits, within a bound, for the engine's answer to each start a cancelled job sent, and reports a start left unanswered, never all stopped.
+A Go test did reproduce it, failing on five runs of five. A declare cancels the deploys it covers and starts the stop at once, and the stopper lists only running containers. A container that a cancelled deploy was starting can therefore come up after that list and run under the drain, while the stop reports every member stopped. The race does not reach the power-off, which reads the fleet first and halts while a managed container runs; the harm is a broken drain and a wrong stop report. The model allowed that order, and no property read the containers against the drain. The daemon's own copy of this code had the same window.
 
-Since the review, main has fixed the model's nine other findings as well, adding broken twins as it went, and checked the store under a service drain; `specs/README.md` now lists twenty-one twins.
+The finding rose to the most severe level, and main fixes it in both copies, the daemon's first. The declare records the jobs it cancelled. After its waves, the stop waits for those jobs to end, bounded by the engine's call timeout, then checks once more each member it skipped or stopped, and stops any that came up. The Go test passes five runs of five, beside a second test for a cancelled restore. The daemon's copy now records, the same way, the restores its UPS watcher cancels before its own declare. A narrower window remained: a start that landed after that last check could still run under the drain. Main has fixed it too, in both copies. The stop now waits, within a bound, for the engine's answer to each start a cancelled job sent, and reports a start left unanswered instead of reporting all stopped.
+
+Since the review, main has also fixed the model's nine other findings, adding broken twins as it went, and has checked the store under a service drain; `specs/README.md` now lists twenty-one twins.
 
 | kind | finding | on main |
 |---|---|---|

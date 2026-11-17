@@ -1,121 +1,163 @@
 # Syrvis
 
-Syrvis keeps a Synology NAS running DSM 7 in the state you declare.
+Syrvis brings the working practices of site reliability and systems engineering to the services on your Synology NAS.
+It runs on top of DSM, Synology's own system, so that those services are easier to manage and to make your own.
+You write down what the server should run.
+One small program on the server, the daemon, makes it so, keeps it in order through deployments, reboots and power cuts, and tells you where the server differs from what you wrote.
+You manage it from your own computer, with no password and no shell on the server.
 
-It is two programs.
-`syrvisd` is an agent that runs on the box as a DSM package.
-`syrvis` is a command you run on your own computer, and it reaches the agent over mutual TLS.
-The client never opens a shell on the box, and nothing there changes until you declare it.
-Every refusal names what it refused and how to proceed.
+Start at the [Syrvis site](https://syrvis.github.io/.github/).
+If you have a Synology NAS, the [User guide](https://syrvis.github.io/.github/guide/) takes you through the install; the [Design](https://syrvis.github.io/.github/design/) shows how each part is built.
 
-Start with the [user guide](https://syrvis.github.io/.github/guide/) if you have a box, or with the [design](https://syrvis.github.io/.github/design/) to see how it works.
+## Syrvis and DSM
 
-## A short tour
+DSM already runs services: Container Manager runs your containers, Task Scheduler runs scripts, and DSM's UPS setting shuts the server down when the power fails.
+Syrvis keeps all three and works beside them; it needs Container Manager to run your containers.
+What it adds is one written record of what the server should run, and the order, checks and history that follow from it.
 
-You create a shared folder in DSM and install the package.
-Then you run one root step on the box, the only privileged part of the install.
+| | With DSM alone | With syrvis |
+|---|---|---|
+| What runs | Each container or project is set up in Container Manager's screens, with its own restart setting | One document declares every service on the server, and syrvis plans, orders and watches each one |
+| Making a change | A change takes effect where you make it | You stage a change, read its plan with a time budget, then apply it; each apply is a revision, and a rollback runs at the server itself |
+| Order | At a shutdown, as syrvis's design reads it, Container Manager stops containers all at once | Each group of services says what it provides and requires, and one order follows for draining, rebooting, the stop on battery and the start after boot |
+| On UPS battery | DSM shuts down after a delay or at low battery | Syrvis stops your services in that order first, then hands the last step to DSM; DSM's own low-battery shutdown stays as the last resort |
+| Scheduled jobs | Task Scheduler runs a script on a schedule or at boot | A chore, a task declared with its service, runs inside that service's container, is watched to its end, and is held and reported if it fails |
+| Knowing it is right | DSM's screens show what is running | The server is checked against what you declared, and each thing that needs you is named with its fix |
+| Where you manage from | DSM's pages, signed in as an administrator | Your computer, the console, an AI agent or OpenTofu, all through one API |
 
-Three commands on your computer complete the setup.
-`syrvis api enroll-request` mints a key on your machine.
-`syrvis context pin` records where the box is.
-`syrvis next` asks the box what it still needs.
+**Your own services, today.** You declare a container of your own in one document, then stage, plan and apply it from your computer.
+A service that keeps data also needs a placement file, written by hand and put in place by a root line, one command you run at the server.
+Three things that would make this shorter are decided and not built: a catalog of ready-made service descriptions, a first service with no OpenTofu in the way, and the install writing the placement file for you.
 
-The agent reads the box: its volumes, hardware, containers and services.
-It grades health as the match between what it observes and what you declared, never as uptime.
-A fact the box cannot answer grades unknown, and unknown is never a pass.
+## Ways to manage
 
-You declare your containers as a revision, and the agent converges the box to it.
-A drain stops services, dependants first.
-A restore brings them back, dependencies first.
+You reach the server four ways, and all four use the same API.
 
-Reboot, power-off and the UPS stop run as workflows on a durable engine.
-A reboot waits for your typed confirm.
-On UPS battery, the agent stops the box with no one present.
+- **The `syrvis` command** on your computer does every act: install, status, deployments, drains, reboot, power-off, workflows, seats and logs.
+- **The console** opens in your browser from `syrvis dash`. It is read-only: it shows services, deployments, workflows, chores, checks and events, changes nothing, and opens nothing new on the server.
+- **An AI agent** reaches the server through the agent bridge, `syrvis mcp`, which speaks the Model Context Protocol (MCP) to the program that hosts the agent. The agent holds the seat it runs under and no more. It can read, plan and apply a deployment someone else staged; it cannot stage one, and it can deliver a confirm a person made but never make one. No agent host has been tested with the bridge yet, so there is no setup line to copy.
+- **The OpenTofu provider** declares the server's whole deployment in an OpenTofu file: `tofu plan` stages and plans it, `tofu apply` applies the plan you reviewed, and `tofu destroy` only detaches, leaving your services running. It is tested against a real daemon over a stand-in container engine and is not yet tested on a real server. It is not released: you build it and place it by hand. Nothing in syrvis requires it.
 
-Each library the agent composes stands alone, with its own tests.
-The libraries that hold state also have TLA+ models, and TLC checks them in a repository's gate; the commons' lifecycle model is checked in the commons' own gate and in the agent's.
-The [provability pages](https://syrvis.github.io/.github/provability/) say what each model proves and what it misses.
+Beneath all four sits one API on the server: a fixed list of 47 named calls, with no shell behind them.
+Every connection uses mutual TLS, where each side proves itself by its key and your computer pins the daemon's key, so it knows the daemon by that key alone.
+Each computer or agent has a seat, its own entry on the server's list of who may connect, with a grade: read-only, operator, or admin, and admin is granted only at the server itself.
+One implementation stands behind every way in, so a grade, a refusal and a confirm behave the same from each.
+You extend what the server runs without writing code: your own containers, scheduled chores, expiry dates, virtual machines declared so they stop in order, and a gate that opens your own service's API to named seats.
+New calls and new kinds of workflow are compiled into the daemon, so today only a release adds one.
+
+## Workflows and chores
+
+A workflow is a job the daemon runs step by step, writing each step to its journal before the next.
+A workflow under way survives a reboot or a daemon restart, and a step cut off by a crash is held until you act, never run again blindly.
+
+| Workflow | What it does | Started by |
+|---|---|---|
+| Planned reboot | Drains, waits for your confirm, then restores after the restart | `syrvis reboot` |
+| Power-off | Waits for your confirm, drains, powers off; restores after boot, or holds until you confirm | `syrvis power-off` |
+| UPS stop | On UPS battery, drains in order, then powers off, with no confirm | The daemon |
+| UPS restore | Restores once the power is back and holding | The daemon |
+| Seat renewal | Renews a seat before it expires | The daemon |
+| Declared chore | Runs a service's declared task in its container, for 1 to 29 minutes | Its schedule, at boot, or `syrvis task` |
+| Upgrade | Receives the new version, keeps your answers, hands over to the root step | `syrvis install` with a newer version |
+
+A drain stops services in a planned order, and the restore brings them back.
+For the planned reboot, you press restart in DSM.
+
+The daemon also does this upkeep on its own:
+
+- **Seat renewal.** Each seat is renewed 21 days before it expires, by 180 days, with no confirm, and never to more than 365 days ahead. A seat's life ends 730 days after it was made: then it is read-only for 30 days, then closed, and you make a new key on your computer and replace the seat once.
+- **Chores you declare.** Watched to their end, held and reported on failure or overrun; a service that declares a database gets a nightly dump.
+- **Bringing services back.** Every 60 seconds by default, a declared service found stopped is started again, with backoff.
+- **Tidying.** It keeps the newest ten revisions, plus the current one and the rollback target, and deletes a finished workflow 30 days after it ends.
+
+Not automatic today: rotating a secret (you raise its revision number), updating images (they are pulled when you apply), and renewing DSM's own certificate.
+
+## Why it is built this way
+
+### Zero dependencies
+
+Nothing extra lands on your server: no database, no message broker, no language runtime, no cloud account.
+Every part of syrvis is written in Go against Go's standard library and syrvis's own modules.
+On your server that means two DSM packages, the installer and SyrvisCore; on your computer, one program.
+The one exception is the optional OpenTofu provider, which keeps a third-party framework and runs on your computer, never on the server.
+
+### One server, on purpose
+
+Software that runs across many machines spends much of its effort keeping those machines in agreement.
+Syrvis runs on one server, where one program holds the truth, so it drops that work and keeps the patterns worth having.
+
+| What a cluster has to solve | What one server lets syrvis drop | The pattern it keeps |
+|---|---|---|
+| A database to run, back up and upgrade | The database: state is plain files, a snapshot and a checksummed journal | A change lands whole, by one atomic rename, or not at all |
+| A message broker between the parts | The broker: each step runs inside the daemon | A durable work queue kept in the journal, so work survives a restart |
+| Agreement between copies (consensus, leader election) | The copies: one process holds the truth | A single writer, held by one lock on its state folder |
+| Health checks by heartbeat | The heartbeats: there is nothing to gossip with | Health means the server matches what you declared, checked fact by fact |
+| A remote shell for administration | The shell: one API with a fixed list of named calls | Named calls with typed parameters; the destructive ones answer only at the server itself |
+
+The install is the one part that spans two machines, and there syrvis uses the full pattern: each side journals its own steps, so closing your laptop mid-install loses nothing.
+The [Engine](https://syrvis.github.io/.github/design/engine.html) page shows how the journal works.
+
+### One declaration, used everywhere
+
+Each group of services says what it `provides` and what it `requires`.
+A requirement names a need, such as `metrics`, never a program, so you can swap the program behind `metrics` without editing what uses it.
+Syrvis binds each need to exactly one group that provides it, or refuses and names the candidates.
+
+<img src="https://syrvis.github.io/.github/images/provides-requires.svg" alt="Two groups of services: media requires metrics and is bound to observer, which provides it. Below, the order services stop in and the mirror order they start in." width="820">
+
+Syrvis reads that one graph when it checks a staged deployment, and when it drains, stops on battery, reboots and starts after boot.
+The floor, the monitoring that watches the rest, stops last and starts first.
+Ordering by group inside an apply, and a group waiting at boot on what another group provides, are not built yet.
+The [Deployment](https://syrvis.github.io/.github/design/deployment.html) page has the order in full.
+
+## Pairing, with no password
+
+`syrvis install` makes a key on your computer, and only its public half travels: you paste it into DSM, where you are already signed in as an administrator, and the installer admits that one key.
+A root step you start in DSM's Task Scheduler installs SyrvisCore and adds your key; then your computer pins the daemon's key.
+Your computer's first connection to the installer is taken on trust on your local network, and the screen says so; a one-time code that proves the server at that first meeting is decided and not built.
+
+<img src="https://syrvis.github.io/.github/images/pairing.svg" alt="Your computer and your server in four steps: you paste your computer's key in DSM, your answers and the checked package go to the installer, the root step starts the daemon, and your computer pins the daemon's key." width="820">
+
+The picture shows the four moves between the two machines; the guide walks you through your five steps in [Install: the first handshake](https://syrvis.github.io/.github/guide/install.html).
+
+## What it looks like
+
+You press Run on the root step in DSM, and `syrvis install` finishes on your computer.
+The names and numbers in this screen are example values.
+
+```
+✓ root step   ran on the box                                     1m4s  5/5
+✓ paired      nas at 127.0.0.1:50002, its key is the one the installer sent
+
+Installed SyrvisCore 2.0.0 on nas in 14m56s. All 5 of your steps done.
+syrvis status · nas · syrvisd 2.0.0-alpha.42 (client 0.0.0-dev)
+
+● healthy   nothing needs you
+```
+
+## How it is proven
+
+The libraries that hold state come with TLA+ models, written descriptions of their behaviour that the model checker TLC explores state by state.
+The checks cover claims such as the floor stopping last, the start mirroring the stop, and a loop of needs being refused, and each runs in its repository's gate.
+The [Provability](https://syrvis.github.io/.github/provability/) pages say what each model proves and what it misses.
 
 ## The repos
 
-### [syrvis](https://github.com/syrvis/syrvis)
-
-The agent, `syrvisd`, and the DSM package it ships in.
-It assembles the libraries below into one process per box and serves the box's one API.
-The repository also holds that API's contract module, an OpenTofu provider for declared state, and the install guide.
-It is at `2.0.0-alpha.67`.
-Design: [the daemon](https://syrvis.github.io/.github/design/daemon.html).
-
-### [syrvis-workflow](https://github.com/syrvis/syrvis-workflow)
-
-The workflow engine, a Go library the agent and the client embed.
-Definitions are compiled into the program that runs them, and nothing is published at run time.
-Every step is journaled, so after a crash or a reboot the engine knows where each workflow stood.
-A step that may have run holds with a named cause rather than run twice.
-A step that waits on a person, such as a confirm, is one more kind of wait.
-The agent's and the client's main branches require it at `v0.2.1`, which carries a fix the provability review found; the agent's release `2.0.0-alpha.67` requires `v0.2.0`.
-Its newest tag, `v0.2.2`, adds named refusals when a host opens a definition or starts an instance, and a skipped step now reads nothing.
-Design: [the engine](https://syrvis.github.io/.github/design/engine.html).
-
-### [syrvis-client](https://github.com/syrvis/syrvis-client)
-
-The `syrvis` command, built for macOS on Apple silicon and Intel, and for Linux on x86_64.
-It reaches the box over mutual TLS, and every command it prints for you runs as printed.
-Its main branch, not yet released, runs its own copy of the engine for reboot, power-off and the connection test.
-`syrvis mcp` serves an AI agent over MCP; an agent may deliver a confirm, and only a person mints one.
-Its release is `v0.1.1`.
-Design: [the client](https://syrvis.github.io/.github/design/client.html).
-
-### [syrvis-mtls](https://github.com/syrvis/syrvis-mtls)
-
-The mutual TLS transport both ends share. Three packages do its work.
-`pin` makes the trust decision on a certificate's key.
-`seat` holds a client's row on the box's roster and its grammar.
-`dial` is the one pinned dial.
-It uses the standard library only and holds no state; the agent keeps the listener and the roster's store.
-It is at `v0.1.0`.
-Its main branch adds `door`, the library half of a daemon's API door, and `pair`, the pairing mode's two forms, for its next tag, `v0.1.1`.
-Design: [the transport](https://syrvis.github.io/.github/design/transport.html).
-
-### [syrvis-deploy](https://github.com/syrvis/syrvis-deploy)
-
-The deployment service, a Go library.
-It stages, plans, applies, rolls back and prunes a box's revisions, and converges containers to them.
-It holds the drain set, the one way to suppress a service, and the plans that stop and restore.
-Its model, `Deploy.tla`, was checked before the code moved in.
-It is at `v0.1.1`; the agent still builds its own copy, and switching to this tag is planned.
-Design: [deployment](https://syrvis.github.io/.github/design/deployment.html).
-
-### [syrvis-common](https://github.com/syrvis/syrvis-common)
-
-The libraries below the services, as seven Go modules: `primitives`, `declarations`, `adapters`, `probes`, `grading`, `frame` and `secretstore`.
-A test holds their order, so a module imports only the modules below it.
-All seven are tagged together at one version, most recently `v0.1.4`.
-The agent requires each at `v0.1.1`, and the deployment service requires five of them.
-Design: [the commons](https://syrvis.github.io/.github/design/commons.html).
-
-## How they fit
-
-Each library is a Go module at a semantic-version tag, and the agent vendors the tags it builds with.
-
-| Repo | Its job | Required by | Version |
-|---|---|---|---|
-| syrvis | the agent, its DSM package and the box's API | nothing: it is the program on the box | `2.0.0-alpha.67` |
-| syrvis-workflow | the workflow engine | syrvis; syrvis-client on main, unreleased | `v0.2.0` |
-| syrvis-mtls | the shared transport | syrvis, syrvis-client | `v0.1.0` |
-| syrvis-common | the libraries below the services | syrvis, syrvis-deploy | `v0.1.1` |
-| syrvis-deploy | revisions, convergence and drains | syrvis, once the switch lands | none: the agent builds its own copy |
-| syrvis-client | the `syrvis` command | nothing: it is the program on your computer | `v0.1.1` |
-
-The versions in this table are the ones the released agent, `2.0.0-alpha.67`, carries, and each repository's newest tag is in its own section above.
-
-The client and the deployment service also require the box's contract module, `github.com/syrvis/syrvis/api`, at a tag.
+| Repo | Its job | Design |
+|---|---|---|
+| [syrvis](https://github.com/syrvis/syrvis) | the daemon, `syrvisd`, its DSM packages (SyrvisCore and the installer), the server's API and the OpenTofu provider | [Daemon](https://syrvis.github.io/.github/design/daemon.html) |
+| [syrvis-cli](https://github.com/syrvis/syrvis-cli) | the `syrvis` command you run on your computer, with the console and the agent bridge | [Client](https://syrvis.github.io/.github/design/client.html) |
+| [syrvis-client](https://github.com/syrvis/syrvis-client) | the library `syrvis` and the console share to reach the server | [Client](https://syrvis.github.io/.github/design/client.html) |
+| [syrvis-console](https://github.com/syrvis/syrvis-console) | the read-only console in your browser | none yet |
+| [syrvis-workflow](https://github.com/syrvis/syrvis-workflow) | the workflow engine: every step journaled, so a workflow resumes after a crash or a reboot | [Engine](https://syrvis.github.io/.github/design/engine.html) |
+| [syrvis-mtls](https://github.com/syrvis/syrvis-mtls) | the mutual TLS connection both ends share, where each side checks the other's key | [Transport](https://syrvis.github.io/.github/design/transport.html) |
+| [syrvis-deploy](https://github.com/syrvis/syrvis-deploy) | deployments, revisions, the drains and the stop and start order | [Deployment](https://syrvis.github.io/.github/design/deployment.html) |
+| [syrvis-common](https://github.com/syrvis/syrvis-common) | the libraries beneath the services, as seven Go modules | [Commons](https://syrvis.github.io/.github/design/commons.html) |
 
 ## Status
 
-Syrvis is alpha software, and it runs one production box.
-A first install on a second box is being rehearsed.
-The code repositories are private for now, and each opens on its own once it is ready.
-This site is public and describes each repository at the version above.
-Every repository is MIT-licensed. Five carry the `LICENSE` file today, and `syrvis` adds its own before it goes public.
+Syrvis is alpha software, and it runs one production server.
+Its code repositories and release pages are private for now, so today the program comes from a release page that needs read access to the organisation.
+This page and the [User guide](https://syrvis.github.io/.github/guide/) are public.
+Every repository is MIT-licensed.
 Syrvis is an independent project and is not affiliated with Synology.

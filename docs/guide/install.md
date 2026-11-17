@@ -1,146 +1,264 @@
 ---
-title: Install
+title: "Install: the first handshake"
 parent: User guide
 nav_order: 1
 ---
 
-# Install
+# Install: the first handshake
 
-The install is six steps: get the `syrvis` command, create a shared folder, install the package, mint your key, run one root command at the box, and pin the box from your computer. It is done when `syrvis --context nas next` answers `set-up`.
+At the end of this page, your Synology NAS runs SyrvisCore, and your computer and the server trust each other by their keys. From then on you run the server from your computer with one command, `syrvis`. Your part is five steps: two in a terminal on your computer and three in DSM. Keep the terminal and DSM open side by side. Whenever `syrvis` waits for you, you can close the window and pick up later where you left off.
 
-If the box holds data you care about, read the pre-install checklist first. It lists every file Syrvis writes and every file an uninstall leaves, and it ships inside the package. The `.spk` is an ordinary tar, so this line prints the checklist without unpacking anything else:
+## How the two machines come to trust each other
 
-```
-tar -xOf syrvisd-<version>.spk package.tgz | tar -xzOf - doc/preinstall-checklist.md
-```
+![Your computer and your server in four steps: you paste your computer's key in DSM, your answers and the checked package go to the installer, the root step starts the daemon, and your computer pins the daemon's key.](../images/pairing.svg)
+
+Three parties take part. `syrvis` runs on your computer. The installer is a small DSM package that pairs your computer with the server once. SyrvisCore is the main package, and its daemon runs your services and answers `syrvis` from then on. No password is created at any point, and `syrvis` never opens a shell on the server. Only the public half of your computer's key travels, and you carry it yourself, through DSM, where you are already signed in as an administrator.
+
+The picture numbers the four moves that pass between the machines. Your own steps, below, number five.
+
+The names, addresses, versions and keys in this page's screens are example values. Yours will differ.
 
 ## What you need
 
 | what | why |
 |---|---|
 | an x86_64 Synology whose CPU family is in the package's list | DSM refuses any other family with Error 281 and leaves nothing behind. ARM models are not supported |
-| DSM 7.0-40656 or newer | the package's floor. Syrvis is measured on DSM 7.4.1; the builds between are not tested |
-| a storage pool with at least one volume | DSM installs the package on a volume, and Syrvis manages one |
-| a DSM administrator account | for the root step. SSH is optional |
-| Package Center allowing packages from any publisher | the package is not signed by Synology |
-| Container Manager, only to run services | status, census, health and hardware reads work without it |
-| a computer whose address does not change | your key is pinned to the address the box sees. Reserve one in your router |
-| macOS, or Linux on x86_64 | the client ships as `syrvis-darwin-arm64`, `syrvis-darwin-amd64` and `syrvis-linux-amd64` |
+| DSM 7.0-40656 or newer | the package's floor, the oldest DSM it installs on. Syrvis is measured on DSM 7.4.1; the builds between are not tested |
+| a storage pool with at least one volume | Syrvis keeps its home in a shared folder on a volume |
+| a DSM administrator account | for the Manual Install and the Task Scheduler task. SSH is not needed |
+| Container Manager, only to run services | the install itself does not need it |
+| your computer on the same network as the server | `syrvis` finds the installer on your local network |
+| `syrvis` v0.1.12 on your computer | it installs the server package 2.0.0-alpha.72 |
 
-The package's CPU families are `x86_64 avoton v1000 apollolake geminilake denverton broadwellnk r1000`. Your model's token is on the CPU line of Control Panel > Info Center > General. With SSH, this prints `synology_<token>_<model>`:
+The package's CPU families are `x86_64 avoton v1000 apollolake geminilake denverton broadwellnk r1000`. Your model's family is on the CPU line of Control Panel > Info Center > General. If yours is not in the list, ask for a build with it added before you install.
 
-```
-/usr/syno/bin/synogetkeyvalue /etc.defaults/synoinfo.conf unique
-```
+Syrvis is alpha software. Its code repositories and release pages are private for now, so today `syrvis` comes from a release page that needs read access to the syrvis organisation on GitHub.
 
-If your token is not in the list, ask for a build with it added before you install.
+## Your five steps
 
-## Step 1: Get the client
+### Step 1: run `syrvis install`
 
-The client is a release asset, and each package release carries the client it was tested with: 2.0.0-alpha.67 carries client v0.1.1. At this release the repositories are private, so you need read access to the syrvis organisation before the release pages open.
-
-1. Open the releases, and pick 2.0.0-alpha.67:
-   ```
-   https://github.com/syrvis/syrvis/releases
-   ```
-2. Download `SHA256SUMS` and the build for your machine into one folder.
-3. In that folder, check the build. On Linux, run `sha256sum -c SHA256SUMS --ignore-missing` instead:
-   ```
-   shasum -a 256 -c SHA256SUMS --ignore-missing
-   ```
-4. Rename the build to `syrvis`. For Apple silicon:
-   ```
-   mv syrvis-darwin-arm64 syrvis
-   ```
-5. If it came through a browser, AirDrop, Messages or Mail, clear the quarantine mark that stops macOS running it:
-   ```
-   xattr -d com.apple.quarantine syrvis
-   ```
-6. Make it executable, and put it on your PATH:
-   ```
-   chmod +x syrvis
-   sudo mkdir -p /usr/local/bin && sudo mv syrvis /usr/local/bin/
-   ```
-7. Run `syrvis version`. Its second line is the bound, `bound: serves boxes from <version>; tested with <version>`. The box must run the first version named, or a later one.
-
-## Step 2: Create the shared folder
-
-Syrvis manages one directory on one volume, which it calls its home. The home is a DSM shared folder that you create, on the volume you want managed, under any name.
-
-1. Open Control Panel > Shared Folder > Create.
-2. Pick the volume, and type a name. Leave encryption off: an encrypted share is not tested.
-3. Write the spelling down exactly. DSM share names are case-insensitive, so `syrviscore` and `SyrvisCore` are one name.
-
-The folder's path is `/volume1/<name>` on Volume 1, `/volume2/<name>` on Volume 2, and so on. Below, it is `/volumeN/<share>`. The root step writes one file into it, `.syrvis-volume.json`, and nothing else.
-
-## Step 3: Install the package
-
-The package is `syrvisd-2.0.0-alpha.67.spk` on the same release page, beside its `.spk.sha256` and `.daemon.sha256` files. Keep the daemon file for step 5. For this release the package's sha256 is `993f1f1810664d1a9d3eb00f05a3c08fd7878b8c130826e840e45a7fe716f059`, and the daemon's is `a325dfb2de91876d25d6cb2b0c94282a2c72c08e3eb9626131ee714dd934ce7f`.
-
-1. Hash the package, and compare the result with the `.spk.sha256` file. On Linux, use `sha256sum`:
-   ```
-   shasum -a 256 syrvisd-2.0.0-alpha.67.spk
-   ```
-2. In Package Center, choose Manual Install > Browse, pick the `.spk`, and click Next.
-3. Pick the volume for the package. It may differ from the home's volume.
-4. Leave *Run after installation* ticked, and click Apply.
-
-DSM then starts the agent with reduced privileges: it reads, and changes nothing. The dialog prints the commands of steps 4 and 5, which are also below. If the install refuses an untrusted publisher, set Package Center > Settings > General > Trust Level. If Package Center shows the package stopped or offers Repair, do not click Repair: step 5 comes next.
-
-## Step 4: Mint your key
-
-On your computer:
+On your computer, run:
 
 ```
-syrvis api enroll-request --context nas --grade operator
+syrvis install
 ```
 
-`nas` is your name for the box. `--grade operator` asks for the grade that can change the box. Without it the key is read-only, and raising it later costs a new key and two commands at the box.
+While it reads the release, the download row shows a turning mark:
 
-The private half of the key never leaves your computer. The command prints the paste-line, `name=nas,spki=<64 hex>,from=<your address>/32,grade=operator`; keep it for step 5. If your computer has several addresses, the command lists them and refuses. Run it again with `--from <address>` added, naming the one on the box's network.
-
-## Step 5: Run the root step
-
-One command, run as root at the box, does the whole device-side first run. It installs a root-owned copy of the agent and a rescue copy with its boot script, names your home, declares the container engine and the address your computer dials, enrols your key, and makes the agent a root service that starts at boot.
-
-| value | where it comes from |
-|---|---|
-| `/volumeN/<share>` | step 2's path, spelled exactly |
-| `/var/run/docker.sock` | Container Manager's socket. You may pass it before Container Manager is installed, or leave out `--docker-socket` and the path |
-| `<nas-ip>` | the address you type into a browser to reach DSM: Control Panel > Network > Network Interface |
-| `<paste-line>` | step 4's line, inside the quotes |
-
-```
-sudo /var/packages/syrviscore/target/bin/syrvis-enable --home /volumeN/<share> --docker-socket /var/run/docker.sock --api-listen <nas-ip>:7447 --api-client "<paste-line>"
+```screen
+⠋ download    reading the release on github.com   0.0s
 ```
 
-**Route A, over SSH.** Tick Control Panel > Terminal & SNMP > *Enable SSH service*, and click Apply. Run `ssh <admin>@<nas-ip>`, paste the command, and give `sudo` your DSM password. You can turn SSH off afterwards.
+When the downloads are in:
 
-**Route B, without SSH.** Choose Control Panel > Task Scheduler > Create > Scheduled Task > User-defined script. Set User to `root`, paste the command into the script box, and save. Select the task, click Run, then right-click it and choose View Result. Not yet measured: whether View Result shows every line. The last two lines matter most.
+```screen
+syrvis install · client 0.0.0-dev · release 2.0.0
 
-Read three things in what it prints:
-
-- The line `about to install the daemon from`, with `sha256 <64 hex>` under it. Compare that hash by eye with the `.daemon.sha256` file. If they differ, stop and report it.
-- The pin line, `syrvis context pin nas <nas-ip>:7447 <64 hex>`, under `fingerprint` or under `next`. Copy it whole for step 6.
-- Any line beginning `NOT DONE`. It names what did not happen and the command to run next. [Troubleshooting](troubleshooting.md) lists the common ones.
-
-The run also prints the agent's health verdict and an `undo` line; [Upgrade and uninstall](upgrade-and-uninstall.md) covers the teardown. Running the same command again with the same flags changes nothing, and prints `start-time keys moved: none`.
-
-## Step 6: Pin the box
-
-If DSM's firewall denies by default, allow 7447/tcp from your computer's address first, or the pin times out. The package asks DSM to list a service named SyrvisCore for that port; if the list does not show it, allow the port number. The package opens no port by itself.
-
-On your computer, paste the pin line:
-
-```
-syrvis context pin nas <nas-ip>:7447 <64 hex>
+✓ name        nas (the box's own name; change with --context)
+✓ download    syrvisd 2.0.0 and installer 0.1.0, checksums verified   2m8s
 ```
 
-It records where the box is and which key the box must present, and takes the first authenticated read. Then ask the box about itself:
+`nas` is the context: the name your computer keeps for this server. Every later command carries it as `--context nas`. `syrvis` has also made your computer's key. Its private half never leaves your computer. What DSM will ask for is your computer's key as 64 characters, and `syrvis` has written it into a copy of the installer in your Downloads folder.
+
+**Who trusts whom:** your computer trusts the checksums published with the release and checks both downloads against them in code, so you compare no checksum by eye.
+
+### Step 2: install the installer in DSM
+
+`syrvis` prints what to do in DSM:
+
+```screen
+  In DSM at https://127.0.0.1:5001: Package Center > Manual Install >
+  syrvis-installer-0.1.0-nas.spk (in Downloads) > Next.
+  When DSM shows "your computer's key", it is filled in: press Next.
+  Should the field be empty, this is the key:
+
+      aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+
+  Leave "Run after installation" ticked, then Apply.
+✓ box         127.0.0.1:7448 (the only box found; change with --pair)
+! installer   waiting for the installer at 127.0.0.1:7448 to answer ⠋ 0.0s  2/5
+You can close this window; this picks up here: syrvis install --context nas
+```
+
+In DSM:
+
+1. Open Package Center and choose Manual Install.
+2. Choose the installer file from your Downloads folder. Its name starts with `syrvis-installer`. Press Next.
+3. DSM warns that the package is not published by Synology. That is expected, since the installer is not signed by Synology. Go on past the warning.
+4. The wizard has one step, titled "Your computer's key". Its field reads: "Paste the key that syrvis install printed on your computer, whole. Run syrvis install first if you have not." The field is already filled. If it is empty, paste the 64 characters from your terminal. Press Next.
+5. Leave "Run after installation" ticked, and press Apply.
+
+The installer starts and opens port 7448 for pairing. `syrvis` finds it and connects with your computer's key:
+
+```screen
+? installer   answered at 127.0.0.1:7448; key unchecked          2m8s  2/5
+```
+
+**Who trusts whom:** the server learns which computer to trust from you, an administrator signed in to DSM, so the installer admits only the key you pasted and closes every other connection; your computer takes the installer's own key as first met, which is why the row says `key unchecked`.
+
+### Step 3: choose the home
+
+`syrvis` reads facts from the installer and asks the one thing only you can decide, which shared folder becomes Syrvis's home:
+
+```screen
+? Which shared folder holds syrvis's home?  3/5
+    1. /volume1/h1
+    2. Create a shared folder in DSM
+  Or type a folder's absolute path.
+✓ home        /volume1/h1                                              3/5
+✓ address     127.0.0.1:50002 (the one address offered; change with --door)
+✓ Docker      yes (with the Docker socket; change with --docker=false)
+✓ upload      423 kB to the box, verified                             1m4s
+```
+
+Type the number of a folder, or type a folder's path. If no folder fits, the second choice points you to DSM, where you create one at Control Panel > Shared Folder > Create. The rows after the home take defaults: the address the daemon will answer on, and whether to use Docker. Each names the flag that changes it. Then `syrvis` sends the server's package to the installer.
+
+**Who trusts whom:** the installer runs as DSM's unprivileged package user, so it can read and receive and cannot install anything, and the package that will run as root has now been checked on both machines.
+
+### Step 4: create the Task Scheduler task
+
+`syrvis` prints the root step:
+
+```screen
+✓ route       Task Scheduler (change with --route 3)
+  As root it installs SyrvisCore, enrols this computer, and adds a boot hook
+  that stays until uninstall.
+
+  In DSM at https://127.0.0.1:5001: Control Panel > Task Scheduler > Create >
+  Scheduled Task > User-defined script.
+  Name it "syrvis root", user root; Schedule tab: Run on the following date,
+  today's date, Do not repeat; paste this line, Save, select it, Run:
+
+  /var/packages/syrvis-installer/target/bin/syrvis-installer enable --answers dd
+dddddddddddddd
+
+  Keep the task syrvis root: upgrade and uninstall use it again. It runs only
+  when you press Run.
+```
+
+The root line is one line. This example's narrow window wraps it; copy it whole from your terminal.
+
+In DSM:
+
+1. Open Control Panel > Task Scheduler, and choose Create > Scheduled Task > User-defined script.
+2. On the General tab, name the task `syrvis root` and set the user to root.
+3. On the Schedule tab, choose "Run on the following date", pick today's date, and choose "Do not repeat".
+
+**Who trusts whom:** nothing runs as root yet, and the task you are making runs only when you press Run.
+
+### Step 5: paste the root line and press Run
+
+1. On the Task Settings tab, paste the root line into the script field, whole.
+2. Save.
+3. In Task Scheduler's list, select "syrvis root" and press Run.
+
+Until the task runs, the terminal waits:
+
+```screen
+! root step   waiting for the line to run on the box ⠋ 0.0s  5/5
+You can close this window; this picks up here: syrvis install --context nas
+```
+
+The root line ends in a 16-character code. The code is computed from your answers: the home, the address, your computer's key and the package's checksums.
+
+**Who trusts whom:** root learns exactly which answers to apply, because it applies only the answers that match the code and refuses any whose key is not the one you pasted in DSM.
+
+### The handover
+
+As root, the step installs SyrvisCore from the file that was checked, starts the daemon as a root service, and gives your computer's key the daemon's first seat. A seat is a key the daemon accepts calls from. Then it writes a handover record for `syrvis` to read.
+
+```screen
+✓ root step   ran on the box                                     1m4s  5/5
+```
+
+**Who trusts whom:** the daemon's first seat holds the key you pasted and root enrolled, and no password was created.
+
+### The pin
+
+`syrvis` dials the daemon at the address from your own answers, never at one the installer names. It compares the key the daemon presents with the key in the handover. When they match, `syrvis` pins the daemon: it records that key and from then on accepts only that one. Then it saves the context.
+
+```screen
+✓ paired      nas at 127.0.0.1:50002, its key is the one the installer sent
+```
+
+**Who trusts whom:** your computer now trusts the daemon by its key alone, with no certificate authority and no host name, and the installer cannot redirect it, since the key in the handover is only a hint that this check confirms.
+
+### The close
+
+`syrvis` prints what it installed and how long it took, then the server's status:
+
+```screen
+Installed SyrvisCore 2.0.0 on nas in 14m56s. All 5 of your steps done.
+syrvis status · nas · syrvisd 2.0.0-alpha.42 (client 0.0.0-dev)
+
+● healthy   nothing needs you
+```
+
+**Who trusts whom:** from here every call is mutual TLS on port 7447, where each end proves its key: your computer checks the daemon's pin, and the daemon checks your computer's seat.
+
+## If you close the window
+
+Your computer and the installer each keep a journal of the steps they have reached. At every wait the screen tells you that you can close the window, and names the command that picks up. Run it when you are back:
+
+```
+syrvis install --context nas
+```
+
+A run that resumes after the root step looks like this:
+
+```screen
+syrvis install · client 0.0.0-dev · release 2.0.0
+Resuming at the root step; the answers are on the box.
+
+✓ name        nas
+? download    the package named, not checked against the release      2m8s
+✓ box         127.0.0.1:50001
+✓ installer   answered at 127.0.0.1:50001; key as first met           2m8s
+✓ home        /volume1/h1
+✓ address     127.0.0.1:50002
+✓ Docker      yes
+✓ upload      423 kB to the box, verified                             1m4s
+✓ root step   ran on the box                                          1m4s
+✓ paired      nas at 127.0.0.1:50002, its key is the one the installer sent
+```
+
+In this example run the package was named and not checked against the release, and its row carries a `?` to say so. The installer row reads `key as first met`, and never "verified": the first meeting is still taken on faith.
+
+## Why a root step
+
+DSM lets no package install another package or run as root. A root task in Task Scheduler can, so the install asks you to create one. The task is kept, because upgrade and uninstall use it again, and it runs only when you press Run.
+
+## Why a pasted key and not a password
+
+A DSM password in `syrvis`'s hands would give it root on the server, from a distance, by password. Syrvis refuses that design. A public key that you paste in DSM tells the server which one computer to trust, and gives away no secret.
+
+## What is taken on faith
+
+Your computer's first connection to the installer is taken on faith on your local network, and the screen says so with `key unchecked`. A one-time code that proves the server to your computer at that first meeting is decided and not built.
+
+The installer pairs once and stops. To pair again, you uninstall the installer and do a fresh Manual Install. An installer that stays and opens again, a one-time code for adding a second computer, and an uninstall in one step are designed and not built.
+
+## Once it is paired
+
+Ask the server how it is:
 
 ```
 syrvis --context nas status
-syrvis --context nas next
 ```
 
-`status` answers with the instance id and the agent's version, and `next` answers `set-up`. [First steps](first-steps.md) goes on from here.
+A healthy server answers:
+
+```screen
+syrvis status · nas · syrvisd 2.0.0-alpha.42 (client 0.0.0-dev)
+
+● healthy   nothing needs you
+```
+
+Three things stay on the server after the install:
+
+- SyrvisCore, whose daemon answers `syrvis` on port 7447.
+- The installer, stopped since the handover.
+- The Task Scheduler task "syrvis root". Keep it: [Upgrade and uninstall](upgrade-and-uninstall.md) uses it again.
+
+The next page is [First look](first-steps.md).

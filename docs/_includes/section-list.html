@@ -1,6 +1,0 @@
-<ol class="sec-list">
-{%- for p in include.sec -%}
-{%- assign href = p.url | remove_first: "/" -%}{%- assign last = href | slice: -1 -%}{%- if href == "" or last == "/" -%}{%- assign href = href | append: "index.html" -%}{%- endif -%}
-<li{% if forloop.first %} class="sec-first"{% endif %}><a href="{{ include.root }}{{ href }}"{% if p.url == page.url %} aria-current="page"{% endif %}>{{ p.title | escape }}</a></li>
-{%- endfor -%}
-</ol>

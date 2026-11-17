@@ -30,4 +30,4 @@ Syrvis is alpha software. Fixes go into the next release of the server package a
 
 - DSM itself and Synology's own packages: report those to Synology.
 - The images and containers you run with Syrvis: report those to their authors.
-- The first connection between your computer and the installer is taken on trust on your local network, as the [install guide](https://syrvis.github.io/.github/guide/install.html) says. A report that shows more is possible than the guide says is in scope.
+- The first connection between your computer and the installer is taken on trust on your local network, as the [install guide](https://syrvis.github.io/guide/install.html) says. A report that shows more is possible than the guide says is in scope.

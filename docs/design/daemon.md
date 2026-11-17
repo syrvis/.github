@@ -6,7 +6,7 @@ nav_order: 1
 
 # Daemon
 
-`syrvisd` is one static Go program, installed as a DSM package on a Synology NAS running DSM 7. It reads what the server is, changes what the server runs only toward a declared intent, and grades health against that intent. The `syrvis` repository holds the daemon, its package, the server's API contract under `api/` and the local services. This page describes its main branch at version 2.0.0-alpha.67 and marks as planned anything not built.
+`syrvisd` is one static Go program, installed as a DSM package on a Synology NAS running DSM 7. It reads what the server is, changes what the server runs only toward a declared intent, and grades health against that intent. The `syrvis` repository holds the daemon, its package, the server's API contract under `api/` and the local services. Anything not built is marked as planned.
 
 ## The process
 

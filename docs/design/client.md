@@ -8,7 +8,7 @@ nav_order: 3
 
 `syrvis-client` holds `syrvis`, the program you run on your own computer to read and change a server through the daemon's mutual-TLS API. Each release states in `manifest.json` which server versions it serves, and tests on both sides of the wire hold that statement true. Every command `syrvis` prints runs as printed, and named tests hold that rule.
 
-This page reads `main` at commit `e616a46`, with the daemon at `1069e15b`. The release is `v0.1.1`, the one the package `2.0.0-alpha.67` carries, and its verbs, contexts, ladder layers, manifest and renderer are as below. Three things here are on main and not yet released, and each is marked: the flows that run on the workflow engine inside `syrvis`, the guarded start they give reboot and power-off, and the server-upgrade recovery line.
+The release is `v0.1.1`, the one the package `2.0.0-alpha.67` carries, and its verbs, contexts, ladder layers, manifest and renderer are as below. Three things here are on main and not yet released, and each is marked: the flows that run on the workflow engine inside `syrvis`, the guarded start they give reboot and power-off, and the server-upgrade recovery line.
 
 ## What it is built from
 

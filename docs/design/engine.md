@@ -123,7 +123,7 @@ The queue model checks twelve invariants, such as `AtMostOneBegin` and `NoEffect
 
 Each guard has a dual, a broken twin that must fail. The queue has ten duals and the engine sixteen, one of them for the property `Ends`. The runner reads a dual green only when TLC names its violation, so no proof is green by vacuity. Each trace test replays 2,000 TLC traces against the real queue or engine, step by step, with zero divergences allowed. Go mutants in the replays must diverge, and the crash tests stop the engine at every point of its crash table.
 
-The October 2026 review read both model families at the commit this page describes and filed 25 findings. One exposed a live defect in the Go, one of the two the whole round found (the other is the [deployment](deployment.md#what-the-october-2026-review-found) service's); the other 24 are at the lowest severity.
+The October 2026 review read both model families and filed 25 findings. One exposed a live defect in the Go, one of the two the whole round found (the other is the [deployment](deployment.md#what-the-october-2026-review-found) service's); the other 24 are at the lowest severity.
 
 That defect sat where the queue model has no held instance. An emergency item of a held instance, leasable by no one, stopped every ordinary lease on the server. It was reported as `not_leased`, whose recovery, more workers, is wrong. It was reproduced and fixed after the reviewed commit, and the fix ships in the patch version `v0.2.1`, which the main branches of the daemon and of `syrvis` require; the daemon's release `2.0.0-alpha.67` keeps `v0.2.0`, and the engine's newest tag is `v0.2.2`.
 

@@ -116,7 +116,7 @@ The drained services stay down until you release the drain by its id:
 syrvis --context nas release drn-21
 ```
 
-The release brings them back in the reverse order: the floor first, then what others depend on, then what depends on it. Each one must pass its readiness check before the next starts. In this release the services within one wave start one at a time.
+The release brings them back in the reverse order: the floor first, then what others depend on, then what depends on it. Each one must pass its readiness check before the next starts. The services within one wave start one at a time.
 
 A drain that would close a loop of needs refuses and stops nothing. So does a narrow drain that would take the floor down.
 
@@ -126,7 +126,7 @@ A drain that would close a loop of needs refuses and stops nothing. So does a na
 syrvis --context nas reboot
 ```
 
-syrvis drains the whole server, waits until it is ready to shut down, and asks you to confirm. In this release you then press restart in DSM yourself. After the boot, syrvis releases the drain and waits until the server is back in service. The procedure keeps a record as it goes, so it picks up after the reboot it caused. The planned reboot end to end is not yet measured at this release.
+syrvis drains the whole server, waits until it is ready to shut down, and asks you to confirm. You then press restart in DSM yourself. After the boot, syrvis releases the drain and waits until the server is back in service. The procedure keeps a record as it goes, so it picks up after the reboot it caused.
 
 **A planned power-off.** To turn the server off with its services stopped in order:
 
@@ -151,7 +151,7 @@ syrvis --context nas power-off
 
 The reboot and the power-off use the same drain and the same restore as the commands above, so a fix to the stop order reaches all of them.
 
-**On UPS battery.** When the power goes out, syrvis declares the same drain you would. It works out how long that drain needs from the services you declared,, and waits while the battery can afford the wait, counting less runtime than your UPS reports so there is a margin. Then it drains the server and powers it off, with no confirm. If the power comes back and holds, it releases the drain. When you add a service, the shutdown time grows with it, and nobody edits a shutdown script. If your declared groups of services do not fit together, the battery stop still runs, in the order of each service's own dependencies, and says so.
+**On UPS battery.** When the power goes out, syrvis declares the same drain you would. It works out how long that drain needs from the services you declared, and waits while the battery can afford the wait, counting less runtime than your UPS reports so there is a margin. Then it drains the server and powers it off, with no confirm. If the power comes back and holds, it releases the drain. When you add a service, the shutdown time grows with it, and nobody edits a shutdown script. If your declared groups of services do not fit together, the battery stop still runs, in the order of each service's own dependencies, and says so.
 
 The ordered start covers a start syrvis runs itself: after a drain, a reboot, a power-off or a battery stop. After a crash, Docker restarts containers by its own policy first.
 
@@ -167,9 +167,7 @@ A one-time code that pairs a second computer in one step is designed and not bui
 
 ## Run a service
 
-In this release a service reaches your server as a deployment. You stage a bundle that describes it, read the plan, and apply it. `revisions` lists what you have applied, and `rollback` returns a deployment to an earlier revision. A deployment is checked against your declared groups when you stage it, and one that does not fit is refused before anything on the server changes. Container Manager must be installed from Package Center first.
-
-A full walk through a first service is not in the guide yet.
+A service reaches your server as a deployment. You stage a bundle that describes it, read the plan, and apply it. `revisions` lists what you have applied, and `rollback` returns a deployment to an earlier revision. A deployment is checked against your declared groups when you stage it, and one that does not fit is refused before anything on the server changes. Container Manager must be installed from Package Center first.
 
 ## Where next
 

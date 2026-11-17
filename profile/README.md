@@ -6,8 +6,6 @@ You write down what the server should run.
 One small program on the server, the daemon, makes it so, keeps it in order through deployments, reboots and power cuts, and tells you where the server differs from what you wrote.
 You manage it from your own computer, with no password and no shell on the server.
 
-**Status:** alpha. The released pair is the server's `2.0.0-alpha.72` and `syrvis` `v0.1.12`, and it runs one production server.
-
 Start at the [Syrvis site](https://syrvis.github.io/.github/).
 If you have a Synology NAS, the [User guide](https://syrvis.github.io/.github/guide/) takes you through the install; the [Design](https://syrvis.github.io/.github/design/) shows how each part is built.
 
@@ -16,7 +14,6 @@ If you have a Synology NAS, the [User guide](https://syrvis.github.io/.github/gu
 DSM already runs services: Container Manager runs your containers, Task Scheduler runs scripts, and DSM's UPS setting shuts the server down when the power fails.
 Syrvis keeps all three and works beside them; it needs Container Manager to run your containers.
 What it adds is one written record of what the server should run, and the order, checks and history that follow from it.
-The left column is our reading of DSM's own tools, not a measured comparison.
 
 | | With DSM alone | With syrvis |
 |---|---|---|
@@ -30,7 +27,7 @@ The left column is our reading of DSM's own tools, not a measured comparison.
 
 **Your own services, today.** You declare a container of your own in one document, then stage, plan and apply it from your computer.
 A service that keeps data also needs a placement file, written by hand and put in place by a root line, one command you run at the server.
-Three things that would make this shorter are decided and not built at this release: a catalog of ready-made service descriptions, a first service with no OpenTofu in the way, and the install writing the placement file for you.
+Three things that would make this shorter are decided and not built: a catalog of ready-made service descriptions, a first service with no OpenTofu in the way, and the install writing the placement file for you.
 
 ## Ways to manage
 
@@ -64,7 +61,7 @@ A workflow under way survives a reboot or a daemon restart, and a step cut off b
 | Upgrade | Receives the new version, keeps your answers, hands over to the root step | `syrvis install` with a newer version |
 
 A drain stops services in a planned order, and the restore brings them back.
-For the planned reboot, in this release you press restart in DSM, and the reboot end to end is not yet measured at this release.
+For the planned reboot, you press restart in DSM.
 
 The daemon also does this upkeep on its own:
 

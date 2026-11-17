@@ -8,8 +8,6 @@ nav_order: 4
 
 `syrvis-mtls` is the mutual-TLS transport the daemon shares with the programs that dial it; in mutual TLS each end proves its key during the TLS handshake. A dialer trusts exactly one key, the daemon's, named by its pin: the hex SHA-256 of the leaf certificate's SubjectPublicKeyInfo. There is no certificate authority, no hostname check and no trust on first use. Each refusal names the layer it came from, so `syrvis` can print the step that clears it. The library uses the Go standard library only, holds no state, and ships as `v0.1.0`, which the daemon and `syrvis` each pin and vendor.
 
-This page reads `syrvis-mtls` at commit `41eb00b`, the daemon at `1069e15b` and `syrvis` at `e616a46`.
-
 ## What the library holds
 
 The library's packages, and what each decides:

@@ -46,7 +46,7 @@ nav_order: 3
 | `reboot` | drains, waits for the shutdown gate, asks you to confirm the halt, waits for the reboot you perform, releases, and waits for return to service. Ctrl-C leaves it standing; run it again to attach |
 | `power-off [--hold]` | the planned power-off, closed by the boot you perform. `--hold` keeps the services down after the boot |
 | `power down --on-boot converge` | the graceful whole-fleet shutdown, confirm-gated. It needs a device drain on a box ready for shutdown |
-| `power restart` | refuses at this release with `power_restart_unmeasured`. Use `reboot` |
+| `power restart` | refuses with `power_restart_unmeasured`. Use `reboot` |
 | `power on nas` | Wake-on-LAN, then waits for the agent to answer. Exit 1 means unknown, not failed |
 | `drain <scope> --reason R` | declares a drain over a `device`, `volume`, `plane`, `set` or `service` |
 | `drains` | the active drains |
@@ -87,7 +87,7 @@ nav_order: 3
 | `placement check <file>` | the box judges a placement registry, and writes nothing |
 | `layer1 check <file>` | the box judges a layer-1 registry, and writes nothing |
 | `layer1 declare <file>` | places the layer-1 registry and loads it without a restart |
-| `layer1 ensure dash` | builds the dashboard sidecar. The other members refuse by name at this release |
+| `layer1 ensure dash` | builds the dashboard sidecar. The other members refuse by name |
 | `methods` | the agent's capability schema |
 | `version` | the client's build, and the box versions it serves |
 

@@ -237,7 +237,7 @@ A DSM password in `syrvis`'s hands would give it root on the server, from a dist
 
 Your computer's first connection to the installer is taken on faith on your local network, and the screen says so with `key unchecked`. A one-time code that proves the server to your computer at that first meeting is decided and not built.
 
-In this release the installer pairs once and stops. To pair again, you uninstall the installer and do a fresh Manual Install. An installer that stays and opens again, a one-time code for adding a second computer, and an uninstall in one step are designed and not built.
+The installer pairs once and stops. To pair again, you uninstall the installer and do a fresh Manual Install. An installer that stays and opens again, a one-time code for adding a second computer, and an uninstall in one step are designed and not built.
 
 ## Once it is paired
 

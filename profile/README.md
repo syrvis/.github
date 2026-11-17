@@ -130,7 +130,7 @@ The names and numbers in this screen are example values.
 ✓ paired      nas at 127.0.0.1:50002, its key is the one the installer sent
 
 Installed SyrvisCore 2.0.0 on nas in 14m56s. All 5 of your steps done.
-syrvis status · nas · syrvisd 2.0.0-alpha.42 (client 0.0.0-dev)
+syrvis status · nas · syrvisd 2.0.0 (client 0.0.0-dev)
 
 ● healthy   nothing needs you
 ```

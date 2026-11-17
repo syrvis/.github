@@ -321,7 +321,7 @@ pre.sm{font-size:.84rem;padding:12px 16px}
 <p>Each computer that connects holds a seat: its own key, a grade and an expiry, recorded on the server. A read-only seat reads. An operator seat also makes changes: stage, plan, apply, drain, reboot and power-off. An admin seat is granted only at the server and can add other seats. Rollback, prune and granting admin work only at the server itself. Prune, rollback, move and power down ask you to type a challenge, and no flag skips it. No password exists, and syrvis never opens a shell on the server.</p>
 <h3>Seeing what the server is doing</h3>
 <p>Run <code>syrvis status</code>. When the server matches what you declared:</p>
-<pre class="screen" tabindex="0">syrvis status · nas · syrvisd 2.0.0-alpha.42 (client 0.0.0-dev)
+<pre class="screen" tabindex="0">syrvis status · nas · syrvisd 2.0.0 (client 0.0.0-dev)
 
 <span class="dot">●</span> healthy   nothing needs you</pre>
 <p>When something needs you, the same command lists it:</p>
@@ -422,7 +422,7 @@ Installed SyrvisCore 2.0.0 on nas in 14m56s. All 5 of your steps done.</pre>
 <p>From then on every call is mutual TLS: your computer checks the daemon's key, and the daemon checks your computer's seat. If you close the window partway, run <code>syrvis install</code> again; each side keeps a journal and picks up at the step it reached.</p>
 <p>Your computer's first connection to the installer is taken on trust on your local network, and the screen says <code>key unchecked</code>. A one-time code that proves the server to your computer at that first meeting is decided and not built.</p>
 <h3>What you need</h3>
-<p>A Synology NAS with DSM and Container Manager; the install checks for Container Manager and stops with the way on if it is missing. Server release 2.0.0-alpha.72 and syrvis v0.1.12. Syrvis is alpha and its code repositories are private for now, so today both come from release pages that need read access to the syrvis organisation.</p>
+<p>A Synology NAS with DSM and Container Manager; the install checks for Container Manager and stops with the way on if it is missing. Server release 2.0.0-alpha.72 and syrvis v0.1.13. Syrvis is alpha and its code repositories are private for now, so today both come from release pages that need read access to the syrvis organisation.</p>
 <p class="note">The names and numbers in this tab's screen are example values.</p>
 <div class="details"><span class="dk">Details</span><a href="guide/install.html">Install: the first handshake</a><a href="design/transport.html#the-pin">Transport, The pin</a><a href="design/daemon.html#the-package-and-the-root-step">Daemon, The package and the root step</a></div>
 </div></section>

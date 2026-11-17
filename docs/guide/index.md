@@ -6,7 +6,7 @@ has_children: true
 
 # User guide
 
-This guide takes you from a Synology NAS running DSM 7 to a server that Syrvis runs, driven from your own computer. Commands and Troubleshooting still describe an earlier release in places and are being revised. Syrvis is alpha software.
+This guide takes you from a Synology NAS running DSM 7 to a server that Syrvis runs, driven from your own computer. Syrvis is alpha software.
 
 Syrvis has three parts. `syrvis` runs on your computer. The daemon runs on the server inside the SyrvisCore package, and answers `syrvis` over mutual TLS on port 7447, where each end proves its key on every connection. The installer is a small DSM package that pairs your computer with the server once, then stops. `syrvis` never opens a shell on the server.
 
@@ -55,7 +55,7 @@ The screens say "box" where this guide says "the server". The names, addresses, 
 |---|---|
 | [Install: the first handshake](install.md) | what you need, your five steps, and how your computer and the server come to trust each other |
 | [First look](first-steps.md) | `syrvis status` and `status --all`, the console, whether the server is ready, stopping services in order and bringing them back, and a second computer |
-| [Commands](commands.md) | the `syrvis` commands and the exit codes; being revised, it still lists two retired commands, `next` and `verify` |
+| [Commands](commands.md) | every `syrvis` command you run, in the groups its help uses, the global flags and exit codes, and the commands run at the server |
 | [Troubleshooting](troubleshooting.md) | the refusals you are likeliest to meet, each with its recovery |
 | [Upgrade and uninstall](upgrade-and-uninstall.md) | a newer release with `syrvis install <version>`, and taking Syrvis off the server |
 

@@ -20,7 +20,7 @@ syrvis --context nas status
 
 On a server with nothing to do:
 
-```
+```screen
 syrvis status · nas · syrvisd 2.0.0-alpha.42 (client 0.0.0-dev)
 
 ● healthy   nothing needs you
@@ -28,7 +28,7 @@ syrvis status · nas · syrvisd 2.0.0-alpha.42 (client 0.0.0-dev)
 
 When something needs you, the same command puts it first, then shows each service against what you declared for it:
 
-```
+```screen
 syrvis status · lab-ops
 
 ● unhealthy   a service diverges from its intent
@@ -77,7 +77,7 @@ Before you stop things, ask the server whether it is ready:
 syrvis --context nas ready
 ```
 
-```
+```screen
 readiness  phase running · intent in-service
 
 ✓ drained     every member stops inside its budget
@@ -101,7 +101,7 @@ To take down a service called `web`, together with what depends on it:
 syrvis --context nas drain service --selector web --reason "image upgrade" --dependants cascade
 ```
 
-```
+```screen
 ✓ drain drn-21 declared (service/web)
   members: web, worker
   stop waves: [worker] → [web]
@@ -134,7 +134,7 @@ syrvis drains the whole server, waits until it is ready to shut down, and asks y
 syrvis --context nas power-off
 ```
 
-```
+```screen
 → wf-power-off-3-1
   ✓   created
   · 1 drain

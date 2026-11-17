@@ -46,13 +46,13 @@ syrvis install
 
 While it reads the release, the download row shows a turning mark:
 
-```
+```screen
 ⠋ download    reading the release on github.com   0.0s
 ```
 
 When the downloads are in:
 
-```
+```screen
 syrvis install · client 0.0.0-dev · release 2.0.0
 
 ✓ name        nas (the box's own name; change with --context)
@@ -67,7 +67,7 @@ syrvis install · client 0.0.0-dev · release 2.0.0
 
 `syrvis` prints what to do in DSM:
 
-```
+```screen
   In DSM at https://127.0.0.1:5001: Package Center > Manual Install >
   syrvis-installer-0.1.0-nas.spk (in Downloads) > Next.
   When DSM shows "your computer's key", it is filled in: press Next.
@@ -91,7 +91,7 @@ In DSM:
 
 The installer starts and opens port 7448 for pairing. `syrvis` finds it and connects with your computer's key:
 
-```
+```screen
 ? installer   answered at 127.0.0.1:7448; key unchecked          2m8s  2/5
 ```
 
@@ -101,7 +101,7 @@ The installer starts and opens port 7448 for pairing. `syrvis` finds it and conn
 
 `syrvis` reads facts from the installer and asks the one thing only you can decide, which shared folder becomes Syrvis's home:
 
-```
+```screen
 ? Which shared folder holds syrvis's home?  3/5
     1. /volume1/h1
     2. Create a shared folder in DSM
@@ -120,7 +120,7 @@ Type the number of a folder, or type a folder's path. If no folder fits, the sec
 
 `syrvis` prints the root step:
 
-```
+```screen
 ✓ route       Task Scheduler (change with --route 3)
   As root it installs SyrvisCore, enrols this computer, and adds a boot hook
   that stays until uninstall.
@@ -155,7 +155,7 @@ In DSM:
 
 Until the task runs, the terminal waits:
 
-```
+```screen
 ! root step   waiting for the line to run on the box ⠋ 0.0s  5/5
 You can close this window; this picks up here: syrvis install --context nas
 ```
@@ -168,7 +168,7 @@ The root line ends in a 16-character code. The code is computed from your answer
 
 As root, the step installs SyrvisCore from the file that was checked, starts the daemon as a root service, and gives your computer's key the daemon's first seat. A seat is a key the daemon accepts calls from. Then it writes a handover record for `syrvis` to read.
 
-```
+```screen
 ✓ root step   ran on the box                                     1m4s  5/5
 ```
 
@@ -178,7 +178,7 @@ As root, the step installs SyrvisCore from the file that was checked, starts the
 
 `syrvis` dials the daemon at the address from your own answers, never at one the installer names. It compares the key the daemon presents with the key in the handover. When they match, `syrvis` pins the daemon: it records that key and from then on accepts only that one. Then it saves the context.
 
-```
+```screen
 ✓ paired      nas at 127.0.0.1:50002, its key is the one the installer sent
 ```
 
@@ -188,7 +188,7 @@ As root, the step installs SyrvisCore from the file that was checked, starts the
 
 `syrvis` prints what it installed and how long it took, then the server's status:
 
-```
+```screen
 Installed SyrvisCore 2.0.0 on nas in 14m56s. All 5 of your steps done.
 syrvis status · nas · syrvisd 2.0.0-alpha.42 (client 0.0.0-dev)
 
@@ -207,7 +207,7 @@ syrvis install --context nas
 
 A run that resumes after the root step looks like this:
 
-```
+```screen
 syrvis install · client 0.0.0-dev · release 2.0.0
 Resuming at the root step; the answers are on the box.
 
@@ -249,7 +249,7 @@ syrvis --context nas status
 
 A healthy server answers:
 
-```
+```screen
 syrvis status · nas · syrvisd 2.0.0-alpha.42 (client 0.0.0-dev)
 
 ● healthy   nothing needs you

@@ -1,0 +1,560 @@
+---
+title: Home
+nav_order: 1
+layout: null
+---
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Syrvis</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@600;800&family=Red+Hat+Text:wght@400;500;700&family=Red+Hat+Mono:wght@400;600&display=swap">
+<style>
+:root{
+  color-scheme: light;
+  --night:#1E1764; --night-2:#33279E; --star:#BFC4FF; --dawn:#FFB25E; --sun:#FFE39A;
+  --paper:#FFFFFF; --wash:#F4F2FD; --ink:#1B1640; --ink-2:#575180; --line:#DAD6F2; --mint:#1FB893; --rose:#E84C7A;
+  --display:"Red Hat Display","Avenir Next","Segoe UI",sans-serif;
+  --body:"Red Hat Text","Avenir Next","Segoe UI",sans-serif;
+  --mono:"Red Hat Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+[hidden]{display:none !important}
+html{background:#FFFFFF}
+body{margin:0;background:#FFFFFF;color:#1B1640;font:400 17px/1.6 var(--body);overflow-wrap:break-word}
+.wrap{max-width:1040px;margin:0 auto;padding-block:64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3,h4{font-family:var(--display);margin:0;text-wrap:balance;line-height:1.15;color:inherit}
+h1{font-size:clamp(1.9rem,4.6vw,3.3rem);font-weight:800;letter-spacing:-.02em}
+h2{font-size:clamp(1.8rem,3.8vw,2.6rem);font-weight:800;letter-spacing:-.01em}
+h3{font-size:clamp(1.35rem,2.6vw,1.75rem);font-weight:800}
+h4{font-size:1.12rem;font-weight:600}
+p{margin:0;max-width:66ch}
+a{color:inherit;text-underline-offset:3px}
+a:focus-visible,button:focus-visible,pre:focus-visible{outline:3px solid var(--dawn);outline-offset:3px}
+code,.mono{font-family:var(--mono);font-size:.9em}
+code{background:#F4F2FD;border-radius:6px;padding:.1em .4em}
+.eyebrow{font:600 .8rem/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--night-2)}
+.stack{display:grid;gap:16px}
+
+/* the night band */
+.night{background:linear-gradient(180deg,#1E1764 0%,#33279E 100%);color:#FFFFFF}
+.night .wrap{padding-block:20px 64px}
+.top{display:flex;flex-wrap:wrap;gap:10px 26px;align-items:center;margin-bottom:56px}
+.logo{font:800 1.45rem/1 var(--display);text-decoration:none;display:inline-flex;gap:10px;align-items:center}
+.logo i{width:14px;height:14px;border-radius:50%;background:var(--dawn);box-shadow:0 0 0 5px rgba(255,178,94,.25);display:block}
+.top nav{margin-left:auto;display:flex;flex-wrap:wrap;gap:6px 22px;font-weight:500}
+.top nav a{text-decoration:none;color:var(--star)} .top nav a:hover{color:#FFFFFF;text-decoration:underline}
+.hero{gap:20px}
+.night .lede{font-size:1.18rem;color:#E4E6FF;max-width:60ch}
+.night code{background:rgba(255,255,255,.14);color:#FFFFFF}
+.small{font-size:.9rem;color:var(--star)}
+
+/* the tab bar */
+.tabbar{position:sticky;top:0;z-index:10;background:rgba(255,255,255,.97);border-bottom:1.5px solid var(--line)}
+.tabbar .wrap{padding-block:10px}
+[role=tablist]{display:flex;flex-wrap:wrap;gap:8px;padding:3px}
+[role=tab]{font:600 .95rem/1 var(--body);white-space:nowrap;padding:10px 16px;border-radius:999px;border:0;background:#F4F2FD;color:#1B1640;cursor:pointer;flex:none}
+[role=tab]:hover{background:#E8E4FB}
+[role=tab][aria-selected=true]{background:#1E1764;color:#FFFFFF}
+[role=tab] code{background:transparent;padding:0;color:inherit}
+@media(max-width:760px){
+  [role=tablist]{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:thin;padding-bottom:6px}
+}
+
+/* the panels */
+.panel{scroll-margin-top:72px}
+.panel .wrap{padding-block:48px 72px}
+html:not(.tabs-on) .panel + .panel{border-top:1.5px solid var(--line)}
+.flow > * + *{margin-top:18px}
+.flow > h2{margin-top:12px}
+.flow > h3{margin-top:56px}
+.flow > .grid,.flow > .tw,.flow > .figure,.flow > .dawnbox,.flow > .strip,.flow > .details{margin-top:26px}
+.flow > p{color:#1B1640}
+.summary{font-weight:500;background:#FFF6DC;border-left:4px solid var(--dawn);padding:12px 16px;border-radius:0 12px 12px 0}
+.cap,.note{font-size:.9rem;color:var(--ink-2)}
+.figure .cap{margin-top:12px}
+.note{font-style:italic}
+
+.grid{display:grid;gap:20px}
+@media(min-width:780px){.g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:repeat(3,1fr)}.g4{grid-template-columns:repeat(2,1fr)}}
+@media(min-width:1000px){.g4{grid-template-columns:repeat(4,1fr)}}
+.tile{border:1.5px solid var(--line);border-radius:18px;padding:22px;display:grid;gap:10px;align-content:start;background:#FFFFFF;min-width:0}
+.tile p{font-size:.96rem;color:var(--ink-2)}
+.tile .k{font:600 .74rem/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--rose)}
+
+.tw{overflow-x:auto;border-radius:18px;border:1.5px solid var(--line);background:#FFFFFF}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:.95rem}
+th,td{text-align:left;vertical-align:top;padding:14px 18px;border-bottom:1.5px solid var(--line)}
+tbody tr:last-child td{border-bottom:0}
+th{font:600 .76rem/1.25 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2);background:#F4F2FD}
+td:first-child{font-weight:700;width:22%} td:nth-child(2){color:var(--ink-2)}
+.st-Built{color:#0E7D62} .st-Designed{color:#B3274F}
+h4.tt{margin-top:40px}
+.flow > h4.tt + .tw{margin-top:14px}
+
+.strip{display:flex;flex-wrap:wrap;gap:10px}
+.strip span{font:600 .9rem/1 var(--mono);padding:11px 16px;border-radius:999px;background:#1E1764;color:#FFFFFF}
+
+.list,.steps,.props{margin:0;padding-left:1.3em;display:grid;gap:10px;max-width:70ch}
+.steps{padding-left:1.6em}
+.steps li::marker{font:700 1rem var(--display);color:var(--night-2)}
+.list li::marker,.props li::marker{color:var(--rose)}
+
+pre{margin:0;max-width:100%;overflow-x:auto;white-space:pre;font:400 .86rem/1.55 var(--mono);border-radius:14px;padding:16px 20px}
+pre.screen{background:#1E1764;color:#E4E6FF}
+pre.screen .dot{color:#3FE0B5}
+pre.code{background:#F4F2FD;color:#1B1640;border:1.5px solid var(--line)}
+pre.code code{background:transparent;padding:0;font-size:1em}
+
+/* figures */
+.figure{margin:0;display:block}
+.figure figcaption{font:600 1.05rem/1.3 var(--display);margin-bottom:12px}
+.fig{overflow-x:auto;border-radius:18px;border:1.5px solid var(--line);background:#FFFFFF}
+.fig svg{display:block;width:100%;min-width:700px;height:auto}
+.fig svg.wide{min-width:980px}
+svg text{font-family:var(--body);fill:#1B1640;font-size:13px}
+svg text.m,svg tspan.m{font-family:var(--mono)}
+svg text.b{font-weight:700}
+svg text.gh{font:800 16px var(--display)}
+svg text.w{font:600 12px var(--mono);fill:#575180}
+svg text.on{fill:#FFFFFF}
+svg text.pre{white-space:pre}
+
+/* the night-to-morning timeline */
+.dawnbox{border-radius:22px;padding:28px 22px;background:linear-gradient(180deg,#33279E 0%,#7A5FD0 34%,#FFB25E 78%,#FFE39A 100%)}
+.tl{list-style:none;margin:0;padding:0;display:grid;gap:18px}
+.tl li{display:grid;grid-template-columns:70px 1fr;gap:16px;align-items:start}
+.tl time{font:600 .95rem/1 var(--mono);color:#FFFFFF;padding-top:22px;text-align:right}
+.tl li.day time{color:#1B1640}
+.card{background:#FFFFFF;border-radius:18px;padding:20px 22px;display:grid;gap:10px;min-width:0;box-shadow:0 10px 30px rgba(20,12,80,.18)}
+.card p{font-size:.97rem;color:var(--ink-2)}
+.pills{display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center;font:600 .8rem/1 var(--mono)}
+.pill{border-radius:999px;padding:7px 12px;background:#F4F2FD;color:#1B1640}
+.pill.f{background:#FFE39A} .pills b{color:var(--ink-2)}
+pre.sm{font-size:.84rem;padding:12px 16px}
+@media(max-width:560px){.tl li{grid-template-columns:1fr;gap:6px}.tl time{text-align:left;padding-top:0}.dawnbox{padding:20px 14px}}
+
+/* building blocks and advanced */
+.special{margin:0;padding-left:1.2em;display:grid;gap:8px;font-size:.94rem}
+.special li::marker{color:var(--mint)}
+.meta{margin:4px 0 0;display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:.9rem;border-top:1.5px solid var(--line);padding-top:12px}
+.meta dt{font:600 .72rem/1.9 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
+.meta dd{margin:0;min-width:0}
+.meta a.repo{font-family:var(--mono)}
+.ilinks{display:flex;flex-wrap:wrap;gap:8px}
+.ilinks a,.details a{font-size:.88rem;font-weight:500;text-decoration:none;padding:7px 12px;border-radius:999px;background:#F4F2FD;color:#33279E}
+.ilinks a:hover,.details a:hover{background:#E8E4FB;text-decoration:underline}
+.details{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding-top:22px;border-top:1.5px solid var(--line)}
+.flow > .details{margin-top:40px}
+.details .dk{font:600 .76rem/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--rose);margin-right:6px}
+
+/* the morning band */
+.foot{background:#FFE39A;color:#1B1640}
+.foot .wrap{display:grid;gap:18px;padding-block:52px}
+.flinks{display:flex;flex-wrap:wrap;gap:8px 22px;font-weight:600}
+
+@media(prefers-reduced-motion:reduce){*{transition:none !important;scroll-behavior:auto !important}}
+</style>
+</head>
+<body>
+<header class="night"><div class="wrap">
+<div class="top"><a class="logo" href="./"><i></i>Syrvis</a><nav aria-label="Site"><a href="guide/">User guide</a><a href="design/">Design</a><a href="provability/">Provability</a><a href="https://github.com/syrvis">GitHub</a></nav></div>
+<div class="stack hero"><h1>Site reliability and systems engineering practice, brought to your Synology NAS on top of DSM</h1><p class="lede">Syrvis runs beside DSM and manages the services on your server. You declare what the server should run, and syrvis starts, stops and brings those services back in the right order, through deployments, reboots and power cuts, and shows you where the server differs from what you declared.</p><p class="small">Alpha. Server release 2.0.0-alpha.72, with syrvis v0.1.12 on your computer.</p></div>
+</div></header>
+<div id="tabs-top"></div>
+<div class="tabbar" hidden><div class="wrap"><div role="tablist" aria-label="Sections">
+<button type="button" role="tab" id="tab-overview" aria-controls="overview" aria-selected="true" tabindex="0">Overview</button>
+<button type="button" role="tab" id="tab-order" aria-controls="order" aria-selected="false" tabindex="-1">Order and power</button>
+<button type="button" role="tab" id="tab-manage" aria-controls="manage" aria-selected="false" tabindex="-1">Managing and visibility</button>
+<button type="button" role="tab" id="tab-workflows" aria-controls="workflows" aria-selected="false" tabindex="-1">Workflows</button>
+<button type="button" role="tab" id="tab-services" aria-controls="services" aria-selected="false" tabindex="-1">Your services</button>
+<button type="button" role="tab" id="tab-install" aria-controls="install" aria-selected="false" tabindex="-1">Install</button>
+<button type="button" role="tab" id="tab-blocks" aria-controls="blocks" aria-selected="false" tabindex="-1">Building blocks</button>
+<button type="button" role="tab" id="tab-advanced" aria-controls="advanced" aria-selected="false" tabindex="-1">Advanced</button>
+</div></div></div>
+<main>
+<section class="panel" id="overview" aria-label="Overview"><div class="wrap flow">
+<span class="eyebrow">Overview</span><h2>What syrvis adds to your server</h2>
+<p>Teams that run large online services keep them up with a handful of shared habits. Syrvis brings six of them to one Synology NAS. DSM still runs the server and Container Manager still runs the containers; syrvis decides what runs, in what order, and checks the result. You drive it from your own computer with one command, <code>syrvis</code>.</p>
+<div class="grid g3">
+<div class="tile">
+<h4>Declared state</h4><p>One document says what the server should run. Syrvis brings the server to it and reports where the two differ.</p></div>
+<div class="tile">
+<h4>Ordered stops and starts</h4><p>Services stop with what depends on them first and start in the mirror order, for a deployment, a drain, a reboot, a power-off or a power cut.</p></div>
+<div class="tile">
+<h4>Plans before changes</h4><p>Every change is staged and planned first. The plan shows what will stop and start, in which waves, and how long it may take.</p></div>
+<div class="tile">
+<h4>Durable workflows</h4><p>A long procedure writes each step down as it goes, so it picks up after a crash or after the reboot it asked for.</p></div>
+<div class="tile">
+<h4>Health against what you declared</h4><p>Health compares what the server runs with what you declared. A service you stopped on purpose reads as drained, and only a difference you did not ask for needs you.</p></div>
+<div class="tile">
+<h4>One API</h4><p>The <code>syrvis</code> command, the console, an AI agent and the OpenTofu provider reach the same named calls. A grade, a refusal or a confirm behaves the same from each.</p></div>
+</div>
+<h3>With DSM alone, and with syrvis</h3>
+<div class="tw"><table><thead><tr><th></th><th>With DSM alone</th><th>With syrvis</th></tr></thead><tbody><tr><td>Your own services</td><td>Usually set up one at a time in Container Manager</td><td>Any container image, declared in one document you keep</td></tr><tr><td>Order</td><td>Each container follows its own restart setting</td><td>One graph of what needs what, used for every stop and start</td></tr><tr><td>Changes</td><td>Usually edited in place in Container Manager</td><td>Stage, read the plan and its time budget, then apply; earlier revisions are kept for a rollback at the server</td></tr><tr><td>A power cut</td><td>DSM's UPS setting shuts the server down after a delay or at low battery, and Container Manager stops the containers in parallel</td><td>An ordered stop inside the battery's time, monitoring last; DSM's own low-battery shutdown stays as the last resort</td></tr><tr><td>Health</td><td>Whether each container is running</td><td>Each service graded against what you declared, with each finding and its fix</td></tr><tr><td>Scheduled work</td><td>Task Scheduler runs scripts on a schedule</td><td>Chores run inside a service's container and are watched to the end; a failure holds and alerts you</td></tr><tr><td>Managing it</td><td>The DSM web interface</td><td>The <code>syrvis</code> command, a read-only console, an AI agent, or the OpenTofu provider, all through one API</td></tr></tbody></table></div>
+<p class="cap">The DSM column describes DSM's own tools in general terms and was not checked against every DSM version. Syrvis needs Container Manager and works beside it.</p>
+<h3>Built for one server, on purpose</h3>
+<p>Orchestrators built for clusters spend much of their design on keeping many machines in agreement. Syrvis runs on one server, so one process holds the truth, and it keeps the habits worth having without that machinery. It depends on Go's standard library and its own modules, and nothing else.</p>
+<div class="strip"><span>no database</span><span>no message broker</span><span>no cluster</span><span>no language runtime</span><span>no cloud account</span></div>
+<div class="tw"><table><thead><tr><th>A cluster has to solve</th><th>One server lets syrvis drop</th><th>The habit syrvis keeps</th></tr></thead><tbody><tr><td>Agreement between copies: consensus, a quorum, a leader</td><td>One process holds the truth, so there is no second copy to reconcile</td><td>One writer: a single lock on the state folder</td></tr><tr><td>A database to run, back up and upgrade</td><td>Plain files: a snapshot and a checksummed journal</td><td>Each change lands by one atomic rename, so a half-written change never shows</td></tr><tr><td>A message broker and its delivery promises</td><td>Steps run inside the daemon, called by its own workers</td><td>A durable work queue rebuilt from the journal</td></tr></tbody></table></div>
+<p>The one exception is the OpenTofu provider, which uses the Terraform plugin framework. It runs on your computer, never on the server, and you need it only if you choose OpenTofu.</p>
+<div class="details"><span class="dk">Details</span><a href="design/index.html">Design</a><a href="design/deployment.html#the-store">Deployment, The store</a><a href="design/engine.html#what-it-leaves-out">Engine, What it leaves out</a></div>
+</div></section>
+<section class="panel" id="order" aria-label="Order and power"><div class="wrap flow">
+<span class="eyebrow">Order and power</span><h2>One graph of what needs what</h2>
+<p>Each service lists the services it depends on, such as an app that needs its database to be healthy before it starts. Services also form groups, and a group names what it provides and what it requires by the need, such as <code>metrics</code>, instead of by a product. Each requirement binds to exactly one group that provides it, or syrvis refuses the deployment and names the candidates. Swap your monitoring for another and only the binding changes; no service that uses it is edited.</p>
+<figure class="figure"><figcaption>Two groups, one need</figcaption><div class="fig"><svg viewBox="0 0 900 400" role="img" aria-label="Two groups. The group media holds media-web, media-api and media-db and requires metrics. The group observer holds metrics-db, provides metrics and is the floor. The requirement is bound to observer. media-web needs media-api, and media-api needs media-db to be healthy.">
+<defs><marker id="ga" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#1E1764"/></marker></defs>
+<rect x="30" y="24" width="380" height="352" rx="18" fill="#F4F2FD" stroke="#DAD6F2" stroke-width="1.5"/>
+<text x="54" y="58" class="gh">group media</text>
+<rect x="54" y="72" width="150" height="28" rx="14" fill="#FBD9E4"/><text x="129" y="91" text-anchor="middle">requires metrics</text>
+<rect x="130" y="130" width="170" height="44" rx="12" fill="#FFFFFF" stroke="#1E1764" stroke-width="2"/><text x="215" y="157" text-anchor="middle" class="m">media-web</text>
+<line x1="215" y1="174" x2="215" y2="220" stroke="#1E1764" stroke-width="2" marker-end="url(#ga)"/><text x="228" y="203">needs</text>
+<rect x="130" y="222" width="170" height="44" rx="12" fill="#FFFFFF" stroke="#1E1764" stroke-width="2"/><text x="215" y="249" text-anchor="middle" class="m">media-api</text>
+<line x1="215" y1="266" x2="215" y2="312" stroke="#1E1764" stroke-width="2" marker-end="url(#ga)"/><text x="228" y="295">needs, healthy</text>
+<rect x="130" y="314" width="170" height="44" rx="12" fill="#FFFFFF" stroke="#1E1764" stroke-width="2"/><text x="215" y="341" text-anchor="middle" class="m">media-db</text>
+<line x1="410" y1="200" x2="556" y2="200" stroke="#1E1764" stroke-width="3" marker-end="url(#ga)"/><text x="484" y="188" text-anchor="middle" class="b">bound to observer</text>
+<rect x="560" y="114" width="320" height="200" rx="18" fill="#FFF6DC" stroke="#FFB25E" stroke-width="1.5"/>
+<text x="584" y="148" class="gh">group observer</text>
+<rect x="584" y="162" width="150" height="28" rx="14" fill="#CFF3E7"/><text x="659" y="181" text-anchor="middle">provides metrics</text>
+<rect x="584" y="226" width="160" height="44" rx="12" fill="#FFFFFF" stroke="#1E1764" stroke-width="2"/><text x="664" y="253" text-anchor="middle" class="m">metrics-db</text>
+<rect x="756" y="234" width="64" height="28" rx="14" fill="#FFE39A"/><text x="788" y="253" text-anchor="middle" class="b">floor</text>
+</svg></div><p class="cap">An example. The floor is the monitoring that watches the rest, so it stops last and starts first.</p></figure>
+<h3>A power cut at night</h3>
+<p>The times and services below are an example. Syrvis acts on the battery's reported time, and nobody has to be awake.</p>
+<div class="dawnbox"><ol class="tl"><li><time>2:07</time><div class="card"><h4>The power fails and the UPS takes over</h4><p>Your UPS reports how long its battery can last, 14 minutes in this example. Syrvis has already computed how long an ordered stop of your services takes, from what each service declared.</p></div></li><li><time>2:08</time><div class="card"><h4>Syrvis waits while the battery allows</h4><p>It counts the UPS's reported time at 70 percent and waits while the battery affords it. If the power comes back and holds, the workflow <code>ups-restore</code> brings back whatever was stopped.</p></div></li><li><time>2:12</time><div class="card"><h4>Services stop in order</h4><p>What depends on a service stops before it, at most two at a time. The database stops after the services that use it. The monitoring stops last, so the whole stop is recorded.</p><div class="pills"><span class="pill">media-web</span><b aria-hidden="true">→</b><span class="pill">media-api</span><b aria-hidden="true">→</b><span class="pill">media-db</span><b aria-hidden="true">→</b><span class="pill f">metrics-db, last</span></div></div></li><li><time>2:14</time><div class="card"><h4>The server powers off</h4><p>With every service stopped, the workflow hands the power-off to DSM. DSM's own low-battery shutdown stays as the last resort if the daemon is not running.</p></div></li><li class="day"><time>6:40</time><div class="card"><h4>The power is back and the server starts</h4><p>Syrvis releases the drain and starts the services in the mirror order: monitoring first, then the database, then what uses it. Each service is started and held until it is ready before the next one starts.</p><div class="pills"><span class="pill f">metrics-db, first</span><b aria-hidden="true">→</b><span class="pill">media-db</span><b aria-hidden="true">→</b><span class="pill">media-api</span><b aria-hidden="true">→</b><span class="pill">media-web</span></div></div></li><li class="day"><time>7:15</time><div class="card"><h4>You check the server</h4><pre class="screen sm" tabindex="0"><span class="dot">●</span> healthy   nothing needs you</pre></div></li></ol></div>
+<h3>The stop and the start, service by service</h3>
+<figure class="figure"><figcaption>The drain and the restore of the example</figcaption><div class="fig"><svg class="wide" viewBox="0 0 1200 360" role="img" aria-label="Four lanes over time. On the left, the stop: media-web stops first, then media-api, then media-db, and metrics-db, the floor, stops last before the power goes off. On the right, the start in the mirror order: metrics-db first, then media-db, media-api and media-web, each ready before the next starts.">
+<defs><marker id="pa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5L0 10z" fill="#575180"/></marker></defs>
+<rect x="230" y="62" width="90" height="236" fill="#F4F2FD"/>
+<text x="275" y="54" text-anchor="middle" class="w">stop wave 1</text>
+<rect x="320" y="62" width="90" height="236" fill="#FFFFFF"/>
+<text x="365" y="54" text-anchor="middle" class="w">stop wave 2</text>
+<rect x="410" y="62" width="90" height="236" fill="#F4F2FD"/>
+<text x="455" y="54" text-anchor="middle" class="w">stop wave 3</text>
+<rect x="500" y="62" width="90" height="236" fill="#FFFFFF"/>
+<text x="545" y="54" text-anchor="middle" class="w">stop wave 4</text>
+<rect x="760" y="62" width="90" height="236" fill="#FFF6DC"/>
+<text x="805" y="54" text-anchor="middle" class="w">start wave 1</text>
+<rect x="850" y="62" width="90" height="236" fill="#FFFFFF"/>
+<text x="895" y="54" text-anchor="middle" class="w">start wave 2</text>
+<rect x="940" y="62" width="90" height="236" fill="#FFF6DC"/>
+<text x="985" y="54" text-anchor="middle" class="w">start wave 3</text>
+<rect x="1030" y="62" width="90" height="236" fill="#FFFFFF"/>
+<text x="1075" y="54" text-anchor="middle" class="w">start wave 4</text>
+<rect x="650" y="62" width="50" height="236" fill="#1E1764"/>
+<text x="646" y="28" text-anchor="end" class="b">power off</text>
+<text x="704" y="28" class="b">power on</text>
+<line x1="650" y1="34" x2="650" y2="300" stroke="#1E1764" stroke-width="2"/>
+<line x1="700" y1="34" x2="700" y2="300" stroke="#1E1764" stroke-width="2"/>
+<text x="138" y="93" text-anchor="end" class="m">media-web</text>
+<rect x="151" y="70" width="78" height="36" rx="7" fill="#BFEBDD"/><text x="190" y="93" text-anchor="middle">running</text>
+<rect x="231" y="70" width="88" height="36" rx="7" fill="#FFC98C"/><text x="275" y="93" text-anchor="middle">stopping</text>
+<rect x="321" y="70" width="328" height="36" rx="7" fill="#E4E1F4"/><text x="485" y="93" text-anchor="middle">stopped</text>
+<rect x="701" y="70" width="328" height="36" rx="7" fill="#E4E1F4"/><text x="865" y="93" text-anchor="middle">stopped</text>
+<rect x="1031" y="70" width="88" height="36" rx="7" fill="#FFE39A"/><text x="1075" y="93" text-anchor="middle">starting</text>
+<rect x="1121" y="70" width="58" height="36" rx="7" fill="#1FB893"/><text x="1150" y="93" text-anchor="middle" class="on">ready</text>
+<text x="138" y="151" text-anchor="end" class="m">media-api</text>
+<rect x="151" y="128" width="168" height="36" rx="7" fill="#BFEBDD"/><text x="235" y="151" text-anchor="middle">running</text>
+<rect x="321" y="128" width="88" height="36" rx="7" fill="#FFC98C"/><text x="365" y="151" text-anchor="middle">stopping</text>
+<rect x="411" y="128" width="238" height="36" rx="7" fill="#E4E1F4"/><text x="530" y="151" text-anchor="middle">stopped</text>
+<rect x="701" y="128" width="238" height="36" rx="7" fill="#E4E1F4"/><text x="820" y="151" text-anchor="middle">stopped</text>
+<rect x="941" y="128" width="88" height="36" rx="7" fill="#FFE39A"/><text x="985" y="151" text-anchor="middle">starting</text>
+<rect x="1031" y="128" width="148" height="36" rx="7" fill="#1FB893"/><text x="1105" y="151" text-anchor="middle" class="on">ready</text>
+<text x="138" y="209" text-anchor="end" class="m">media-db</text>
+<rect x="151" y="186" width="258" height="36" rx="7" fill="#BFEBDD"/><text x="280" y="209" text-anchor="middle">running</text>
+<rect x="411" y="186" width="88" height="36" rx="7" fill="#FFC98C"/><text x="455" y="209" text-anchor="middle">stopping</text>
+<rect x="501" y="186" width="148" height="36" rx="7" fill="#E4E1F4"/><text x="575" y="209" text-anchor="middle">stopped</text>
+<rect x="701" y="186" width="148" height="36" rx="7" fill="#E4E1F4"/><text x="775" y="209" text-anchor="middle">stopped</text>
+<rect x="851" y="186" width="88" height="36" rx="7" fill="#FFE39A"/><text x="895" y="209" text-anchor="middle">starting</text>
+<rect x="941" y="186" width="238" height="36" rx="7" fill="#1FB893"/><text x="1060" y="209" text-anchor="middle" class="on">ready</text>
+<text x="138" y="267" text-anchor="end" class="m">metrics-db (floor)</text>
+<rect x="151" y="244" width="348" height="36" rx="7" fill="#BFEBDD"/><text x="325" y="267" text-anchor="middle">running</text>
+<rect x="501" y="244" width="88" height="36" rx="7" fill="#FFC98C"/><text x="545" y="267" text-anchor="middle">stopping</text>
+<rect x="591" y="244" width="58" height="36" rx="7" fill="#E4E1F4"/><text x="620" y="267" text-anchor="middle">stopped</text>
+<rect x="701" y="244" width="58" height="36" rx="7" fill="#E4E1F4"/><text x="730" y="267" text-anchor="middle">stopped</text>
+<rect x="761" y="244" width="88" height="36" rx="7" fill="#FFE39A"/><text x="805" y="267" text-anchor="middle">starting</text>
+<rect x="851" y="244" width="328" height="36" rx="7" fill="#1FB893"/><text x="1015" y="267" text-anchor="middle" class="on">ready</text>
+<line x1="150" y1="322" x2="1180" y2="322" stroke="#575180" stroke-width="2" marker-end="url(#pa)"/>
+<text x="1180" y="346" text-anchor="end" class="w">time</text>
+</svg></div><p class="cap">The four services, their waves and the timing are an example. The rule is real: what depends on a service stops before it, a database stops after the services that use it, and the floor, here the monitoring's own database, stops last. The start is the mirror: the floor first, then the database, then what uses it, each held until it is ready.</p></figure>
+<h3>Five uses of one graph</h3>
+<ul class="list"><li><strong>Deploying.</strong> A deployment is checked against the graph when you stage it, and refused with the fix named if a need is unmet or met twice. The apply's waves follow each service's own dependencies; group edges are not yet part of the apply.</li><li><strong>Draining.</strong> One command stops a set of services in order, with a time budget computed from what each service declared.</li><li><strong>The stop on battery.</strong> The same drain, started by the daemon when the UPS reports a power cut. Adding a service lengthens the budget by itself.</li><li><strong>The planned reboot and power-off.</strong> <code>syrvis reboot</code> and <code>syrvis power-off</code> drain the server, wait until it is ready, and restore the services after the boot. In this release you press restart in DSM yourself, and the planned reboot end to end is not yet measured.</li><li><strong>The start after boot.</strong> The mirror order, one service at a time within a wave, for a start syrvis orders; after a crash, Docker's own restart policy may start containers first. Starting a group only when what it provides is healthy is designed, not built.</li></ul>
+<p class="note">The names and numbers in this tab's screen are example values.</p>
+<div class="details"><span class="dk">Details</span><a href="design/deployment.html#stop-and-start-order">Deployment, Stop and start order</a><a href="design/engine.html">Engine</a><a href="provability/scenarios.html#when-the-power-goes-out">Scenarios, When the power goes out</a><a href="provability/scenarios.html#deployment">Scenarios, Deployment</a></div>
+</div></section>
+<section class="panel" id="manage" aria-label="Managing and visibility"><div class="wrap flow">
+<span class="eyebrow">Managing and visibility</span><h2>Managing the server, and seeing what it does</h2>
+<p>Everything syrvis does is a named call on one API, served by the daemon, the program syrvis runs on the server. Four things reach that API.</p>
+<div class="grid g4">
+<div class="tile">
+<span class="k">Terminal</span>
+<h4>The <code>syrvis</code> command</h4><p>One program on your computer for every act: install, status, deployments, drains, reboot, power-off, workflows and seats.</p></div>
+<div class="tile">
+<span class="k">Browser</span>
+<h4>The console</h4><p><code>syrvis dash</code> opens a read-only view of the server in your browser: services, deployments, workflows, chores, checks, events and access. It changes nothing.</p></div>
+<div class="tile">
+<span class="k">AI agents</span>
+<h4>The agent bridge</h4><p><code>syrvis mcp</code> lets an AI agent that speaks MCP reach the same calls, with the seat of the connection it runs under. It cannot stage a deployment, and it can deliver a confirm you made but never make one. No AI agent has been tested with it yet.</p></div>
+<div class="tile">
+<span class="k">Infrastructure as code</span>
+<h4>The OpenTofu provider</h4><p>Keep the whole deployment in a file and change it with <code>tofu plan</code> and <code>tofu apply</code>. Optional, and not released yet; the Your services tab says where it stands.</p></div>
+</div>
+<h3>Seats and grades</h3>
+<p>Each computer that connects holds a seat: its own key, a grade and an expiry, recorded on the server. A read-only seat reads. An operator seat also makes changes: stage, plan, apply, drain, reboot and power-off. An admin seat is granted only at the server and can add other seats. Rollback, prune and granting admin work only at the server itself. Prune, rollback, move and power down ask you to type a challenge, and no flag skips it. No password exists, and syrvis never opens a shell on the server.</p>
+<h3>Seeing what the server is doing</h3>
+<p>Run <code>syrvis status</code>. When the server matches what you declared:</p>
+<pre class="screen" tabindex="0">syrvis status · nas · syrvisd 2.0.0-alpha.42 (client 0.0.0-dev)
+
+<span class="dot">●</span> healthy   nothing needs you</pre>
+<p>When something needs you, the same command lists it:</p>
+<pre class="screen" tabindex="0">syrvis status · lab-ops
+
+<span class="dot">●</span> unhealthy   a service diverges from its intent
+
+  ! power off  not safe yet: 1 check holds it; one volume is not writable,
+               so a stop could lose the queue's last writes
+
+conformance DIVERGING
+  (1 conforming · 1 transitioning · 1 diverging)
+! search-indexer-of-the-archive  running  declared          exited    behind  DIVERGING      -
+→ queue                          running  floor (deferred)  starting  -       TRANSITIONING  start 40s/120s
+  1 more conforming
+
+  more: --all for every check, --json for the evidence</pre>
+<p>Each row of the conformance table reads, left to right: the service, what you declared for it, where that comes from, what the server observes, how far it is behind, and the verdict. A service you drained on purpose reads as drained. A fact the server cannot answer reads unknown, and unknown never counts as healthy. <code>syrvis status --all</code> lists every check.</p>
+<p><code>syrvis ready</code> answers whether the server is safe to drain, to shut down and to return to service, with the reason for each no. <code>syrvis logs &lt;service&gt;</code> shows the last lines one service printed, and <code>syrvis events</code> reads the server's event stream once.</p>
+<p class="note">The names and numbers in this tab's screens are example values.</p>
+<div class="details"><span class="dk">Details</span><a href="guide/first-steps.html">First look</a><a href="design/client.html">Client</a><a href="design/transport.html#seats-and-their-life">Transport, Seats and their life</a><a href="design/daemon.html#health-as-conformance-to-declared-intent">Daemon, Health as conformance to declared intent</a></div>
+</div></section>
+<section class="panel" id="workflows" aria-label="Workflows"><div class="wrap flow">
+<span class="eyebrow">Workflows</span><h2>Long procedures that survive a restart</h2>
+<p>A workflow is a procedure the daemon runs step by step, writing each step to its journal before it moves on. So it carries on after a daemon restart or after the reboot it asked for, and a step that may have run when the server crashed is held for you instead of being run twice.</p>
+<p class="summary">Everything below is built in 2.0.0-alpha.72, except the rows marked designed.</p>
+<h4 class="tt">Workflows</h4>
+<div class="tw"><table><thead><tr><th>Workflow</th><th>What it does</th><th>Started by</th><th>State</th></tr></thead><tbody><tr><td>Planned reboot</td><td>Drains the server, asks you to confirm, waits for the reboot, restores the services</td><td><code>syrvis reboot</code></td><td><b class="st-Built">Built</b>. You press restart in DSM; not yet measured end to end at this release</td></tr><tr><td>Power-off</td><td>Asks you to confirm, drains, powers off; restores the services after the next boot</td><td><code>syrvis power-off</code></td><td><b class="st-Built">Built</b></td></tr><tr><td>Power-off, held</td><td>The same, and the services stay down after the boot until you confirm</td><td><code>syrvis power-off --hold</code></td><td><b class="st-Built">Built</b></td></tr><tr><td>Stop on battery</td><td>On UPS battery, drains in order and powers off, with no confirm</td><td>The daemon, when the UPS reports a power cut</td><td><b class="st-Built">Built</b></td></tr><tr><td>Restore after power</td><td>The power came back and held: restores the services</td><td>The daemon</td><td><b class="st-Built">Built</b></td></tr><tr><td>Install</td><td>Your computer and the installer each run a journaled workflow, so either side resumes where it stopped</td><td><code>syrvis install</code></td><td><b class="st-Built">Built</b></td></tr><tr><td>Upgrade</td><td>Receives the new package, holds your answers, hands over at the root step</td><td><code>syrvis install</code> with a newer version</td><td><b class="st-Built">Built</b></td></tr><tr><td>DSM update</td><td>A DSM update as its own procedure</td><td></td><td><b class="st-Designed">Designed</b></td></tr><tr><td>A second pairing</td><td>An installer that stays and pairs another computer with a one-time code</td><td></td><td><b class="st-Designed">Designed</b></td></tr></tbody></table></div>
+<h4 class="tt">Upkeep the daemon does</h4>
+<div class="tw"><table><thead><tr><th>Upkeep</th><th>What it does</th><th>State</th></tr></thead><tbody><tr><td>Seat renewal</td><td>Renews each seat 21 days before it expires; on a failure, holds and alerts you every 24 hours. A seat's life ends 730 days after it was granted, and then you rotate your computer's key</td><td><b class="st-Built">Built</b></td></tr><tr><td>Chores</td><td>Runs a task a service declares, inside that service's container, on its schedule or at boot; a failure or an overrun holds and alerts you</td><td><b class="st-Built">Built</b></td></tr><tr><td>Database dumps</td><td>A service that declares a database gets a nightly dump task</td><td><b class="st-Built">Built</b></td></tr><tr><td>Bringing services back</td><td>Every 60 seconds, a declared service found stopped is started again, with backoff</td><td><b class="st-Built">Built</b></td></tr><tr><td>Invariant checks</td><td>Reads the server's invariants every 30 minutes. Repair exists for two of them, only when you arm it, and has not yet been seen to run</td><td><b class="st-Built">Built</b></td></tr><tr><td>Expiry dates</td><td>Dates you declare, graded on the server's clock</td><td><b class="st-Built">Built</b></td></tr><tr><td>Clean-up</td><td>Keeps the newest ten revisions, the current one and the rollback target; deletes a finished workflow 30 days after it ends</td><td><b class="st-Built">Built</b></td></tr></tbody></table></div>
+<p>Not automatic today: rotating a secret (you raise its revision by hand), updating images (they are pulled at apply), and renewing DSM's own certificate.</p>
+<p><code>syrvis workflow list</code> shows what is running, and <code>syrvis workflow confirm</code> answers a workflow that waits for you.</p>
+<div class="details"><span class="dk">Details</span><a href="design/engine.html">Engine</a><a href="design/daemon.html#workflows">Daemon, Workflows</a><a href="design/daemon.html#chores">Daemon, Chores</a><a href="provability/scenarios.html#engine">Scenarios, Engine</a></div>
+</div></section>
+<section class="panel" id="services" aria-label="Your services"><div class="wrap flow">
+<span class="eyebrow">Your services</span><h2>Running your own services</h2>
+<p>One document declares any container you want to run, and syrvis plans it, orders it among your other services and watches it. At this release you write that document by hand. A catalog of vetted services and a first service in one command are decided and not released.</p>
+<h3>What you need</h3>
+<ul class="list"><li>A paired server with Container Manager.</li><li>An operator seat.</li><li>For a service that keeps data, a placement file you write by hand and put in place with a root line at the server.</li></ul>
+<h3>Stage, plan, apply</h3>
+<p>Staging stores your document as a new revision and checks it against the graph. Nothing on the server changes yet.</p>
+<pre class="code" tabindex="0"><code>syrvis --context nas stage &lt; bundle.json</code></pre>
+<p>The plan says what will stop and start, in which waves, and the time budget. <code>&lt;revision&gt;</code> is the id that <code>stage</code> printed.</p>
+<pre class="code" tabindex="0"><code>syrvis --context nas plan &lt;revision&gt;</code></pre>
+<p>Then apply it, and watch the job it starts:</p>
+<pre class="code" tabindex="0"><code>syrvis --context nas apply &lt;revision&gt;</code></pre>
+<pre class="screen" tabindex="0">plan revision rev-7 (budget 1m30s = stop 20s + bring-up 1m10s, max_parallel 2)
+  name    action    phase  charge
+? web     recreate  both   60s
+? worker  recreate  both   30s
+  1 service(s) already converged (none)
+  stop waves:     [web worker]
+  bring-up waves: [worker(running)] → [web(healthy)]
+  pulls (pre-flip, outside every budget): web:1.5
+
+✓ job job-deploy-12 started (budget 1m30s), watch with: syrvis job job-deploy-12 --watch</pre>
+<p>A minimal document has this shape. It is the shape the tests use, and it has not been run on a server as written.</p>
+<pre class="code" tabindex="0"><code>{"schema": "syrvis-bundle/3",
+ "declarations": {"schema": "syrvis-declarations/4",
+   "networks": [{"name": "example-net"}],
+   "services": [{"name": "web", "spec": {"image": "registry.example/web:1", "network": "example-net"}}]}}</code></pre>
+<p>Images are pinned by tag or by digest. <code>syrvis revisions</code> lists earlier revisions; the server keeps the newest ten, the current one and the rollback target. A rollback runs only at the server itself.</p>
+<h3>The OpenTofu provider</h3>
+<p>If you keep your configuration as code, the OpenTofu provider holds the server's whole deployment as one resource. <code>tofu plan</code> stages and plans, <code>tofu apply</code> applies only the plan you reviewed, and <code>tofu destroy</code> forgets the state and changes nothing on the server. Secrets come from <code>sops</code> and are rendered in memory on your computer.</p>
+<pre class="code" tabindex="0"><code>provider "syrvis" { address = "tls:nas" }
+resource "syrvis_deployment" "box" {
+  device   = "nas"
+  services = { example-svc = { enabled = true, spec = { image = "&lt;registry-host&gt;/&lt;repository&gt;@sha256:&lt;64 hex&gt;" } } }
+}</code></pre>
+<p>The provider is built and tested against a real daemon and real OpenTofu; a test layer against a real server is not built. It is not released yet: there is no release tag, and you place the plugin by hand. It grants no seats: a plan that names a seat fails and prints the command to run at the server.</p>
+<h3>Decided, not released</h3>
+<ul class="list"><li>A catalog of vetted services, and <code>syrvis catalog</code>.</li><li>A first service with no OpenTofu.</li><li>An install that writes the placement file for you.</li></ul>
+<p class="note">The names and numbers in this tab's screen are example values.</p>
+<div class="details"><span class="dk">Details</span><a href="design/deployment.html">Deployment</a><a href="design/deployment.html#revisions-and-the-plan">Deployment, Revisions and the plan</a><a href="guide/first-steps.html#run-a-service">First look, Run a service</a></div>
+</div></section>
+<section class="panel" id="install" aria-label="Install"><div class="wrap flow">
+<span class="eyebrow">Install</span><h2>Pairing your computer with the server</h2>
+<p>The install runs from your computer, with one command and five steps of yours. No password is created. Only the public half of your computer's key travels, and you carry it to the server yourself, through DSM, where you are already signed in as an administrator.</p>
+<figure class="figure"><figcaption>Four moves between your computer and your server</figcaption><div class="fig"><svg viewBox="0 0 900 330" role="img" aria-label="Three lanes: your computer, you in DSM, your server. Syrvis makes a key on your computer. 1, you paste its public half into Manual Install in DSM. 2, your answers and the checked package reach the installer on port 7448. 3, you press Run on the root step. 4, your computer pins the daemon&#x27;s key on port 7447.">
+<defs><marker id="pm" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#1E1764"/></marker></defs>
+<rect x="40" y="16" width="220" height="40" rx="20" fill="#1E1764"/><text x="150" y="41" text-anchor="middle" class="on b">Your computer</text>
+<rect x="340" y="16" width="220" height="40" rx="20" fill="#FFB25E"/><text x="450" y="41" text-anchor="middle" class="b">You, in DSM</text>
+<rect x="640" y="16" width="220" height="40" rx="20" fill="#1FB893"/><text x="750" y="41" text-anchor="middle" class="b">Your server</text>
+<line x1="150" y1="56" x2="150" y2="314" stroke="#DAD6F2" stroke-width="2"/><line x1="450" y1="56" x2="450" y2="314" stroke="#DAD6F2" stroke-width="2"/><line x1="750" y1="56" x2="750" y2="314" stroke="#DAD6F2" stroke-width="2"/>
+<circle cx="150" cy="96" r="9" fill="#1E1764"/><text x="170" y="101" class="pre">syrvis install makes this computer's key</text>
+<line x1="150" y1="146" x2="744" y2="146" stroke="#1E1764" stroke-width="2" stroke-dasharray="7 6" marker-end="url(#pm)"/><circle cx="450" cy="146" r="9" fill="#FFB25E" stroke="#1E1764" stroke-width="2"/><text x="170" y="134" class="pre">1  you paste its public half into Manual Install</text>
+<line x1="156" y1="196" x2="744" y2="196" stroke="#1E1764" stroke-width="2" marker-start="url(#pm)" marker-end="url(#pm)"/><text x="170" y="184" class="pre">2  your answers and the checked package reach the installer, port 7448</text>
+<line x1="450" y1="246" x2="744" y2="246" stroke="#1E1764" stroke-width="2" marker-end="url(#pm)"/><circle cx="450" cy="246" r="9" fill="#FFB25E" stroke="#1E1764" stroke-width="2"/><text x="470" y="234" class="pre">3  you press Run on the root step</text>
+<line x1="744" y1="296" x2="156" y2="296" stroke="#1FB893" stroke-width="3" marker-end="url(#pm)"/><text x="170" y="284" class="pre">4  your computer pins the daemon's key, port 7447; every call after is checked both ways</text>
+</svg></div><p class="cap">The diagram counts four moves between the machines. Your own steps are five.</p></figure>
+<h3>Your five steps</h3>
+<ol class="steps"><li>Run <code>syrvis install</code>. It downloads the server's package and the installer, checks both against the release's checksums, and makes your computer's key.</li><li>In DSM, install the installer with Package Center's Manual Install. Your computer's key is already in its one field.</li><li>Choose which shared folder is syrvis's home.</li><li>In Task Scheduler, create a task named "syrvis root" that runs as root.</li><li>Paste the root line into that task and press Run.</li></ol>
+<p>DSM lets no package install another or run as root, and a root task can, so the last step is yours. The root line carries a 16-character code, a digest of your answers, and the root step applies only answers with that digest. Then the daemon starts, your computer's key becomes its first seat, and your computer pins the daemon's key: it records that key and accepts no other.</p>
+<pre class="screen" tabindex="0">✓ root step   ran on the box                                     1m4s  5/5
+✓ paired      nas at 127.0.0.1:50002, its key is the one the installer sent
+
+Installed SyrvisCore 2.0.0 on nas in 14m56s. All 5 of your steps done.</pre>
+<p>From then on every call is mutual TLS: your computer checks the daemon's key, and the daemon checks your computer's seat. If you close the window partway, run <code>syrvis install</code> again; each side keeps a journal and picks up at the step it reached.</p>
+<p>Your computer's first connection to the installer is taken on trust on your local network, and the screen says <code>key unchecked</code>. A one-time code that proves the server to your computer at that first meeting is decided and not built.</p>
+<h3>What you need</h3>
+<p>A Synology NAS with DSM and Container Manager; the install checks for Container Manager and stops with the way on if it is missing. Server release 2.0.0-alpha.72 and syrvis v0.1.12. Syrvis is alpha and its code repositories are private for now, so today both come from release pages that need read access to the syrvis organisation.</p>
+<p class="note">The names and numbers in this tab's screen are example values.</p>
+<div class="details"><span class="dk">Details</span><a href="guide/install.html">Install: the first handshake</a><a href="design/transport.html#the-pin">Transport, The pin</a><a href="design/daemon.html#the-package-and-the-root-step">Daemon, The package and the root step</a></div>
+</div></section>
+<section class="panel" id="blocks" aria-label="Building blocks"><div class="wrap flow">
+<span class="eyebrow">Building blocks</span><h2>How syrvis is put together from Go building blocks</h2>
+<p>Syrvis is more than one program. The daemon on your server, the installer that sets it up and <code>syrvis</code> on your computer are each assembled from the same five Go libraries: a workflow engine, a deployment service, a transport, a set of shared layers called the commons, and a client library. Another daemon or tool can be assembled from them the same way.</p>
+<p>Two rules make this work. First, each library uses Go's standard library and, beyond it, only syrvis's own modules (a module is a versioned unit of Go code), each pinned to a version and copied into the repository, so a build never reaches the network; the OpenTofu provider is a named exception and also uses HashiCorp's plugin framework. Second, one implementation stands behind every way in: each library ships its own contract package, the method names and wire types it offers, and the daemon seals them into one list of methods. One dispatcher, one check of what each seat may do and one wire client stand behind <code>syrvis</code>, the agent bridge and the provider, so a capability added for one reaches all three.</p>
+<figure class="figure"><figcaption>Which blocks each program is built from</figcaption><div class="fig"><svg viewBox="0 0 1000 330" role="img" aria-label="Four programs above five blocks. The daemon is built from the engine, the deployment service, the transport and the commons. The installer is built from the engine, the transport and the commons. syrvis and its agent bridge are built from the client library, the transport and the engine. The OpenTofu provider is built from the deployment service, the transport and the commons.">
+<path d="M64 92 C64 160 63 160 63 228" fill="none" stroke="#1E1764" stroke-width="2.5"/>
+<circle cx="63" cy="228" r="4" fill="#1E1764"/>
+<path d="M108 92 C108 160 273 160 273 228" fill="none" stroke="#1E1764" stroke-width="2.5"/>
+<circle cx="273" cy="228" r="4" fill="#1E1764"/>
+<path d="M152 92 C152 160 446 160 446 228" fill="none" stroke="#1E1764" stroke-width="2.5"/>
+<circle cx="446" cy="228" r="4" fill="#1E1764"/>
+<path d="M196 92 C196 160 651 160 651 228" fill="none" stroke="#1E1764" stroke-width="2.5"/>
+<circle cx="651" cy="228" r="4" fill="#1E1764"/>
+<path d="M320 92 C320 160 106 160 106 228" fill="none" stroke="#E08A2E" stroke-width="2.5"/>
+<circle cx="106" cy="228" r="4" fill="#E08A2E"/>
+<path d="M375 92 C375 160 481 160 481 228" fill="none" stroke="#E08A2E" stroke-width="2.5"/>
+<circle cx="481" cy="228" r="4" fill="#E08A2E"/>
+<path d="M430 92 C430 160 694 160 694 228" fill="none" stroke="#E08A2E" stroke-width="2.5"/>
+<circle cx="694" cy="228" r="4" fill="#E08A2E"/>
+<path d="M675 92 C675 160 890 160 890 228" fill="none" stroke="#1FB893" stroke-width="2.5"/>
+<circle cx="890" cy="228" r="4" fill="#1FB893"/>
+<path d="M620 92 C620 160 515 160 515 228" fill="none" stroke="#1FB893" stroke-width="2.5"/>
+<circle cx="515" cy="228" r="4" fill="#1FB893"/>
+<path d="M565 92 C565 160 149 160 149 228" fill="none" stroke="#1FB893" stroke-width="2.5"/>
+<circle cx="149" cy="228" r="4" fill="#1FB893"/>
+<path d="M810 92 C810 160 331 160 331 228" fill="none" stroke="#E84C7A" stroke-width="2.5"/>
+<circle cx="331" cy="228" r="4" fill="#E84C7A"/>
+<path d="M865 92 C865 160 550 160 550 228" fill="none" stroke="#E84C7A" stroke-width="2.5"/>
+<circle cx="550" cy="228" r="4" fill="#E84C7A"/>
+<path d="M920 92 C920 160 737 160 737 228" fill="none" stroke="#E84C7A" stroke-width="2.5"/>
+<circle cx="737" cy="228" r="4" fill="#E84C7A"/>
+<rect x="20" y="30" width="220" height="62" rx="16" fill="#1E1764"/>
+<rect x="20" y="84" width="220" height="8" fill="#1E1764"/>
+<text x="130" y="64" text-anchor="middle" class="on b">The daemon (<tspan class="m">syrvisd</tspan>)</text>
+<rect x="265" y="30" width="220" height="62" rx="16" fill="#1E1764"/>
+<rect x="265" y="84" width="220" height="8" fill="#E08A2E"/>
+<text x="375" y="64" text-anchor="middle" class="on b">The installer</text>
+<rect x="510" y="30" width="220" height="62" rx="16" fill="#1E1764"/>
+<rect x="510" y="84" width="220" height="8" fill="#1FB893"/>
+<text x="620" y="64" text-anchor="middle" class="on b"><tspan class="m">syrvis</tspan> and its agent bridge</text>
+<rect x="755" y="30" width="220" height="62" rx="16" fill="#1E1764"/>
+<rect x="755" y="84" width="220" height="8" fill="#E84C7A"/>
+<text x="865" y="64" text-anchor="middle" class="on b">The OpenTofu provider</text>
+<rect x="20" y="228" width="172" height="70" rx="16" fill="#FFFFFF" stroke="#1E1764" stroke-width="2"/>
+<text x="106" y="257" text-anchor="middle" class="b">Engine </text>
+<text x="106" y="280" text-anchor="middle">(<tspan class="m">syrvis-workflow</tspan>)</text>
+<rect x="216" y="228" width="172" height="70" rx="16" fill="#FFFFFF" stroke="#1E1764" stroke-width="2"/>
+<text x="302" y="257" text-anchor="middle" class="b">Deployment </text>
+<text x="302" y="280" text-anchor="middle">(<tspan class="m">syrvis-deploy</tspan>)</text>
+<rect x="412" y="228" width="172" height="70" rx="16" fill="#FFFFFF" stroke="#1E1764" stroke-width="2"/>
+<text x="498" y="257" text-anchor="middle" class="b">Transport </text>
+<text x="498" y="280" text-anchor="middle">(<tspan class="m">syrvis-mtls</tspan>)</text>
+<rect x="608" y="228" width="172" height="70" rx="16" fill="#FFFFFF" stroke="#1E1764" stroke-width="2"/>
+<text x="694" y="257" text-anchor="middle" class="b">Commons </text>
+<text x="694" y="280" text-anchor="middle">(<tspan class="m">syrvis-common</tspan>)</text>
+<rect x="804" y="228" width="172" height="70" rx="16" fill="#FFFFFF" stroke="#1E1764" stroke-width="2"/>
+<text x="890" y="257" text-anchor="middle" class="b">Client library </text>
+<text x="890" y="280" text-anchor="middle">(<tspan class="m">syrvis-client</tspan>)</text>
+</svg></div><p class="cap">The daemon, <code>syrvis</code> and the provider also share syrvis's contract module, which holds the wire types and the one wire client. The client library is itself built on the transport and the engine. In each program one function names every library it assembles; no library registers itself.</p></figure>
+<div class="grid g2 cards"><div class="tile block"><h4>The engine</h4><p>The engine runs workflows: lists of steps that must finish even if the server restarts halfway through. It lives inside the program that uses it and remembers every step across restarts. Each workflow is a definition compiled into that program.</p><ul class="special"><li>It is one Go package that uses only the standard library, with no socket and no separate program to run. Two engines in one program share nothing.</li><li>Every fact goes into one journal, an append-only record written through to disk before an act counts. A step whose outcome the engine cannot know is reported as unknown and held for a person to decide.</li><li>Its design is a TLA+ model, a description of the system's states that a checker tries one by one. Twenty-seven duals, copies of the model with one guard switched off that must fail, prove the checker catches each break, and code lands only after its model passes.</li></ul><dl class="meta"><dt>Used by</dt><dd>The daemon, the installer, <code>syrvis</code> and the client library</dd><dt>Repository</dt><dd><a class="repo" href="https://github.com/syrvis/syrvis-workflow">syrvis-workflow</a></dd><dt>Design page</dt><dd><a href="design/engine.html">Engine</a></dd></dl></div><div class="tile block"><h4>The deployment service</h4><p>The deployment service keeps track of what your server should run. It stages a new revision, plans it, applies it, rolls it back and prunes old ones, and brings the server to match. When the server drains, stopping its services in order, the deployment service drains with it.</p><ul class="special"><li>While a drain stands, it refuses any deployment that does not come from syrvis itself.</li><li>Its TLA+ model has twenty-two duals, covering the order services stop in, the order they come back in, never two containers, and a tombstone (the record that something is gone) written before anything is erased.</li><li>Its methods and wire types are its own contract package, <code>deployapi</code>.</li></ul><dl class="meta"><dt>Used by</dt><dd>The daemon and the OpenTofu provider</dd><dt>Repository</dt><dd><a class="repo" href="https://github.com/syrvis/syrvis-deploy">syrvis-deploy</a></dd><dt>Design page</dt><dd><a href="design/deployment.html">Deployment</a></dd></dl></div><div class="tile block"><h4>The transport</h4><p>The transport is the encrypted link between the daemon and every program that talks to it. It uses mutual TLS, so both ends prove their key when the link opens. It also holds pairing, which introduces your computer to your server, and seats, each computer's permitted key on the server.</p><ul class="special"><li>Once paired, a program trusts exactly one key, named by its pin: the SHA-256 hash of that key. No certificate authority vouches for the key, and no hostname is checked.</li><li>It uses only the standard library and holds no state. Both ends run one shared test from fixed test vectors, so the side that dials and the side that listens agree.</li><li>One package, <code>dial</code>, is the only one allowed to open a socket to the API.</li></ul><dl class="meta"><dt>Used by</dt><dd>The daemon, the installer, <code>syrvis</code>, the OpenTofu provider and the client library</dd><dt>Repository</dt><dd><a class="repo" href="https://github.com/syrvis/syrvis-mtls">syrvis-mtls</a></dd><dt>Design page</dt><dd><a href="design/transport.html">Transport</a></dd></dl></div><div class="tile block"><h4>The commons</h4><p>The commons holds the layers every daemon builds on, below any one service. It is one repository of seven Go modules in a strict order: <code>primitives</code> (facts, the journal, events), <code>declarations</code> (what the server is told to run), <code>adapters</code> (DSM actions and a Docker client), <code>probes</code> (how the server is read), <code>grading</code> (status and health), <code>frame</code> (method dispatch, confirms and the lifecycle) and <code>secretstore</code> (one sealed document of secrets, each found by its key id).</p><ul class="special"><li>Every observed value carries three things: whether it was answered, when it was observed, and why it could not be reached. A value nobody answered never counts as healthy.</li><li>Each module imports only the modules below it. A test, <code>TestModulesFormNoCycle</code>, and one wall per module hold that order; a wall is a test that refuses an import across a boundary. One release tags all seven modules at one version.</li><li>A program takes only the layers it needs: the deployment service takes five, the provider two. The <code>census</code> grader works with no state store and no Docker, so it can still read the server during a rescue.</li></ul><dl class="meta"><dt>Used by</dt><dd>The daemon (all seven modules), the installer (four of its packages), the deployment service (five modules) and the OpenTofu provider (two modules)</dd><dt>Repository</dt><dd><a class="repo" href="https://github.com/syrvis/syrvis-common">syrvis-common</a></dd><dt>Design page</dt><dd><a href="design/commons.html">Commons</a></dd></dl></div><div class="tile block"><h4>The client library</h4><p>The client library is what a program needs to talk to the daemon, packed so that any program can embed it. <code>syrvis</code> on your computer is built on it, and the console's unreleased code uses it too. A program with no terminal at all can use it the same way.</p><ul class="special"><li>It runs its own copy of the engine, one for each server connection you have saved, kept in a folder under your settings, or in memory for read-only use.</li><li>A wall over every package it exports forbids exiting the program, printing, reading the keyboard, parsing flags, listening for connections and running other programs, so any program can embed it.</li></ul><dl class="meta"><dt>Used by</dt><dd><code>syrvis</code>, and the console's unreleased code</dd><dt>Repository</dt><dd><a class="repo" href="https://github.com/syrvis/syrvis-client">syrvis-client</a></dd><dt>Design page</dt><dd><a href="design/client.html">Client</a></dd></dl></div></div>
+<h3>One engine, two places</h3>
+<p>The engine the daemon runs on your server also runs inside <code>syrvis</code> on your computer. The client library opens one engine for each server connection, with its workflow definitions compiled in. The daemon starts its engine when it boots; <code>syrvis</code> starts one each time you run it, and that engine replays what it remembers, takes its next steps and exits. The same transport dials from <code>syrvis</code> and listens in the daemon. The installer is a second program in the daemon's repository, built from the same blocks.</p>
+<p>More is designed and not built: a smaller daemon, which today is a profile of the daemon; a lighter instance with the engine, chores, a pager and the dial, and no door (the listening side that accepts connections); an outside home automation daemon made of the engine, a bus and the dial; and a program of the console's own.</p>
+<p class="note">Syrvis is alpha, and its code repositories are private for now; only the repository that holds this site is public. A repository link on this tab opens only for a person with read access to the syrvis organisation on GitHub.</p>
+<div class="details"><span class="dk">Details</span><a href="design/">Design</a><a href="design/engine.html">Engine</a><a href="design/commons.html">Commons</a><a href="design/daemon.html#the-api-contract">Daemon, The API contract</a></div>
+</div></section>
+<section class="panel" id="advanced" aria-label="Advanced"><div class="wrap flow">
+<span class="eyebrow">Advanced</span><h2>The algorithms and the trades behind them</h2>
+<p>This tab is for engineers who want the design under the surface: each algorithm or decision, why it was chosen, and what it costs. Each item links to the design page that holds the detail. Those pages have been reworded for readers, and their versions and numbers still describe 2.0.0-alpha.67, an earlier release than this one.</p>
+<div class="grid g2 items"><div class="tile"><h4>One writer and the state fence</h4><p>One daemon process holds the truth. It takes a single lock on its state folder, and each library owns one folder under that fence and no other file. With one writer there is nothing to agree on, so syrvis carries no consensus, quorum or leader election. The cost is availability: syrvis is not highly available, and more than one daemon is planned, with none of it built.</p><div class="ilinks"><a href="design/index.html#how-the-daemon-composes-them">Design, How the daemon composes them</a><a href="design/index.html#more-than-one-daemon">Design, More than one daemon</a></div></div><div class="tile"><h4>Plain files, a journal and one rename</h4><p>State is a JSON snapshot and a checksummed journal behind a narrow store interface. A change lands by writing a staging directory or a temporary file, fsyncing it, and moving it into place with one atomic rename; <code>current</code> is a regular file because a symlink cannot be fsynced. So a revision directory that exists is whole, and an interrupted apply needs no undo log. An embedded SQLite was the earlier escape hatch and is retired, which gives up a query language over the state.</p><div class="ilinks"><a href="design/deployment.html#the-store">Deployment, The store</a><a href="design/engine.html#the-journal">Engine, The journal</a></div></div><div class="tile"><h4>A durable work queue with leases</h4><p>The queue is derived from the journal at replay; no broker holds it. A work item is one attempt of one step, keyed by <code>(instance, step)</code> on every attempt, offered until a runner begins it, and <code>Begin</code> journals <code>begun</code> once per attempt, so the offer is at least once and the effect at most once. Exactly-once is not claimed: an item begun when its lease is lost holds as <code>outcome_unknown</code> for a person and is never begun again. Emergency items are offered first, and a reserved worker means the stop on battery never waits behind ordinary work.</p><div class="ilinks"><a href="design/engine.html#the-queue-and-its-leases">Engine, The queue and its leases</a><a href="design/engine.html#what-it-leaves-out">Engine, What it leaves out</a></div></div><div class="tile"><h4>Timers journaled at entry, and the boot id as the epoch</h4><p>The engine assumes one host, one clock and one writer, so it carries no partition or clock-skew machinery. A timer's instant is journaled when the wait begins, so it fires once across restarts, and a wait on the boot is answered from the boot id, the epoch that tells one boot from the next. A lease token names the engine's epoch, so a stale token begins nothing. None of this stretches to a second host as it stands.</p><div class="ilinks"><a href="design/engine.html#waits-and-human-confirms">Engine, Waits and human confirms</a></div></div><div class="tile"><h4>The lifecycle table and its admission</h4><p>Whether a reboot, a shutdown, a drain or an apply may start is answered by one table held in memory, in place of distributed locks and fencing tokens. One reboot or shutdown stands at a time. Apply, rollback and prune ask the table first, so each refuses while the server drains and names the state and the way on. The table belongs to one daemon on one server and answers for nothing beyond it.</p><div class="ilinks"><a href="design/commons.html#the-lifecycle-table-and-its-admission">Commons, The lifecycle table and its admission</a><a href="design/daemon.html#power-and-the-lifecycle">Daemon, Power and the lifecycle</a></div></div><div class="tile"><h4>The capability resolver</h4><p>Each <code>requires</code> binds to exactly one provider, in this order of precedence: the group's own <code>bind</code>, then a default in the server's config, then the only group that provides it; anything else is refused. The five refusals are <code>capability_unprovided</code>, <code>capability_ambiguous</code> (naming every candidate), <code>bind_unknown_group</code>, <code>bind_not_a_provider</code> and <code>capability_cycle</code> (naming the cycle in order), and a document that does not resolve never becomes a revision. Each binding becomes edges in the one service graph: every member of the requiring group stops strictly before every member of the provider and starts strictly after it, strictly because members of one wave stop concurrently. A deployment with no groups plans byte for byte as before; the apply's own waves do not yet use group edges, and readiness by capability is designed, not built.</p><div class="ilinks"><a href="design/deployment.html#stop-and-start-order">Deployment, Stop and start order</a><a href="design/deployment.html#revisions-and-the-plan">Deployment, Revisions and the plan</a></div></div><div class="tile"><h4>The drain budget, computed from the plan</h4><p>The time a drain needs is computed from the plan the executor will run: each member's declared <code>stop_max_sec</code>, the waves, the parallelism (at most two stops at once by default), the floor last, and the group edges. Each member climbs a ladder on its own window: ask to stop, poll, one kill, verify, report. On battery the daemon reads the UPS's reported runtime at 70 percent, waits while the battery affords it, then runs the drain and the power-off with no confirm. A broken group declaration refuses a deployment but never the battery drain, which falls back to service-level order and says so; the battery path is built, and its proof on a real server at this release is still open.</p><div class="ilinks"><a href="design/deployment.html#stop-and-start-order">Deployment, Stop and start order</a><a href="provability/scenarios.html#when-the-power-goes-out">Scenarios, When the power goes out</a></div></div><div class="tile"><h4>Mutual TLS with pinned keys and seats, and no certificate authority</h4><p>Your computer mints an Ed25519 key and only the public half travels; each side pins the other's key by the SHA-256 of the public key, with no certificate authority and no hostname check. Each computer holds a seat, a roster row with a grade and an expiry, renewed 21 days before it expires; a seat's life ends 730 days after it was granted, and a key rotation started on your computer brings it back. The destructive class answers only at the local socket on the server, which reads its caller from the socket's peer credentials. The cost is that trust begins at first meeting: the installer's key is taken as first met, and the one-time code that would prove it is decided and not built.</p><div class="ilinks"><a href="design/transport.html#the-pin">Transport, The pin</a><a href="design/transport.html#seats-and-their-life">Transport, Seats and their life</a></div></div><div class="tile"><h4>The install as two journaled workflows on two machines</h4><p>The install is where distribution remains, so syrvis uses the pattern in full: your computer and the installer each run their own journaled workflow (the installer's steps are <code>open</code>, <code>paired</code>, <code>received</code>, <code>answered</code>, <code>rooted</code>, <code>served</code>, <code>down</code>). Each call between them is retried under one key against a handler that is idempotent by that key, and the receiver journals before it answers, so closing the laptop mid-install loses nothing. Root learns what to apply from the first 16 hex characters of the SHA-256 of the answers document, and refuses a document with another digest or another computer's key. In this release the installer pairs once and stops, so pairing again needs an uninstall and a fresh Manual Install.</p><div class="ilinks"><a href="design/daemon.html#the-package-and-the-root-step">Daemon, The package and the root step</a><a href="design/client.html#flows-on-the-engine-inside-syrvis">Client, Flows on the engine inside syrvis</a></div></div><div class="tile"><h4>Health as conformance</h4><p>Health is the conformance of what the server observes to what was declared, never uptime. A fact the server cannot answer grades unknown, and unknown is never a pass; a drained service reads as drained. The same groups roll up a verdict and a drain budget per group. The cost is the declaration itself: what nobody declared is not graded.</p><div class="ilinks"><a href="design/daemon.html#health-as-conformance-to-declared-intent">Daemon, Health as conformance to declared intent</a></div></div><div class="tile"><h4>Zero dependencies, and the one exception</h4><p>Every module of the product requires the Go standard library and, beyond it, only first-party syrvis modules pinned to a tag and vendored, so no build gate reaches the network. The reason, in the record's words: zero third-party runtime dependencies "is itself a static guarantee: less surface to analyze, nothing unaudited in the binary"; an embedded message broker was rejected on this ground, and nothing else is installed on the server, no database, broker or language runtime. The one exception is the OpenTofu provider, which keeps the Terraform plugin framework, runs only on your computer and is optional; a build guard holds the daemon's own module to the standard library. The cost is that the journal, the store, the queue and the transport are syrvis's own code to keep.</p><div class="ilinks"><a href="design/index.html#the-components">Design, The components</a><a href="design/client.html#what-it-is-built-from">Client, What it is built from</a></div></div></div>
+<h3>How TLA+ is used</h3>
+<p>The libraries that hold state carry TLA+ models: the daemon, the workflow engine, the deployment service and the commons. TLC, the TLA+ model checker, runs every model in each repository's <code>make check</code> gate, and a missing checker fails the gate. Each guard has a broken twin, the model with that guard turned off, which must fail on its named property, so no proof passes by vacuity. In the engine, trace tests replay behaviours that TLC generates against the Go code.</p>
+<p>Five of the properties checked for the stop and start order:</p>
+<ul class="props"><li><code>FloorStopsLast</code>: no floor member is asked to stop before every other member has stopped.</li><li><code>RestoreMirrorsStop</code>: a device restore starts the floor first, then dependencies before dependants.</li><li><code>CycleRefuses</code>: a drain over a dependency cycle stops nothing and refuses.</li><li><code>StopEnds</code>: every stop plan ends within its budget, even if a container never dies.</li><li><code>NoApplyUnderDeviceDrain</code>: no apply, rollback or prune is admitted under the device drain.</li></ul>
+<p>A green run covers the model's bounds and nothing past them, and it says nothing about the Go unless a test ties the code to the model. The provability pages say, model by model, what each proves and what it misses.</p>
+<div class="details"><span class="dk">Details</span><a href="provability/index.html#how-syrvis-uses-it">Provability, How Syrvis uses it</a><a href="provability/scenarios.html">Scenarios</a><a href="design/deployment.html#provability">Deployment, Provability</a></div>
+</div></section>
+</main>
+<footer class="foot"><div class="wrap"><a class="logo" href="./"><i></i>Syrvis</a><p>Syrvis is alpha and runs one production server. Its code repositories are private for now. MIT licence. Not affiliated with Synology.</p><p class="flinks"><a href="guide/">User guide</a><a href="design/">Design</a><a href="provability/">Provability</a></p></div></footer>
+<script>
+(function () {
+  var bar = document.querySelector('.tabbar');
+  var list = bar && bar.querySelector('[role=tablist]');
+  if (!list) return;
+  var tabs = Array.prototype.slice.call(list.querySelectorAll('[role=tab]'));
+  var names = tabs.map(function (t) { return t.getAttribute('aria-controls'); });
+  var panels = names.map(function (n) { return document.getElementById(n); });
+  var top = document.getElementById('tabs-top');
+  panels.forEach(function (p, i) {
+    p.setAttribute('role', 'tabpanel');
+    p.removeAttribute('aria-label');
+    p.setAttribute('aria-labelledby', tabs[i].id);
+    p.tabIndex = 0;
+  });
+  document.documentElement.classList.add('tabs-on');
+  bar.hidden = false;
+
+  function hashName() {
+    var h = '';
+    try { h = decodeURIComponent(location.hash.slice(1)); } catch (e) { h = ''; }
+    return names.indexOf(h) >= 0 ? h : null;
+  }
+  function select(name) {
+    var i = Math.max(0, names.indexOf(name));
+    tabs.forEach(function (t, j) {
+      var on = j === i;
+      t.setAttribute('aria-selected', on ? 'true' : 'false');
+      t.tabIndex = on ? 0 : -1;
+      panels[j].hidden = !on;
+    });
+    return i;
+  }
+  function toTop() {
+    if (top && top.getBoundingClientRect().top < 0) top.scrollIntoView();
+  }
+  tabs.forEach(function (t, i) {
+    t.addEventListener('click', function () {
+      select(names[i]);
+      if (location.hash !== '#' + names[i]) {
+        try { history.pushState(null, '', '#' + names[i]); } catch (e) { /* a sandbox may refuse it */ }
+      }
+      toTop();
+    });
+  });
+  list.addEventListener('keydown', function (e) {
+    var i = tabs.indexOf(document.activeElement);
+    if (i < 0) return;
+    var j = null;
+    if (e.key === 'ArrowRight') j = (i + 1) % tabs.length;
+    else if (e.key === 'ArrowLeft') j = (i - 1 + tabs.length) % tabs.length;
+    else if (e.key === 'Home') j = 0;
+    else if (e.key === 'End') j = tabs.length - 1;
+    if (j === null) return;
+    e.preventDefault();
+    tabs[j].focus();
+    tabs[j].click();
+  });
+  function fromAddress() {
+    var n = hashName();
+    if (n) { select(n); if (top) top.scrollIntoView(); }
+  }
+  window.addEventListener('hashchange', fromAddress);
+  window.addEventListener('popstate', function () { select(hashName() || names[0]); });
+  if (hashName()) fromAddress(); else select(names[0]);
+})();
+</script>
+</body>
+</html>

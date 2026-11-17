@@ -12,7 +12,7 @@ Open an issue on the repository of the part at fault:
 | the server: the daemon, its DSM packages, the root step, Package Center | [syrvis/syrvis](https://github.com/syrvis/syrvis/issues) |
 | the console in your browser | [syrvis/syrvis-console](https://github.com/syrvis/syrvis-console/issues) |
 | a library you use from your own code | that library's repository |
-| a page of the site or the user guide | [syrvis/.github](https://github.com/syrvis/.github/issues) |
+| a page of the site or the user guide | [syrvis/syrvis.github.io](https://github.com/syrvis/syrvis.github.io/issues) |
 
 If you cannot tell which part is at fault, report it where you ran the command, and we move it.
 

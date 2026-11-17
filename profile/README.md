@@ -6,8 +6,8 @@ You write down what the server should run.
 One small program on the server, the daemon, makes it so, keeps it in order through deployments, reboots and power cuts, and tells you where the server differs from what you wrote.
 You manage it from your own computer, with no password and no shell on the server.
 
-Start at the [Syrvis site](https://syrvis.github.io/.github/).
-If you have a Synology NAS, the [User guide](https://syrvis.github.io/.github/guide/) takes you through the install; the [Design](https://syrvis.github.io/.github/design/) shows how each part is built.
+Start at the [Syrvis site](https://syrvis.github.io/).
+If you have a Synology NAS, the [User guide](https://syrvis.github.io/guide/) takes you through the install; the [Design](https://syrvis.github.io/design/) shows how each part is built.
 
 ## Syrvis and DSM
 
@@ -95,7 +95,7 @@ Syrvis runs on one server, where one program holds the truth, so it drops that w
 | A remote shell for administration | The shell: one API with a fixed list of named calls | Named calls with typed parameters; the destructive ones answer only at the server itself |
 
 The install is the one part that spans two machines, and there syrvis uses the full pattern: each side journals its own steps, so closing your laptop mid-install loses nothing.
-The [Engine](https://syrvis.github.io/.github/design/engine.html) page shows how the journal works.
+The [Engine](https://syrvis.github.io/design/engine.html) page shows how the journal works.
 
 ### One declaration, used everywhere
 
@@ -103,12 +103,12 @@ Each group of services says what it `provides` and what it `requires`.
 A requirement names a need, such as `metrics`, never a program, so you can swap the program behind `metrics` without editing what uses it.
 Syrvis binds each need to exactly one group that provides it, or refuses and names the candidates.
 
-<img src="https://syrvis.github.io/.github/images/provides-requires.svg" alt="Two groups of services: media requires metrics and is bound to observer, which provides it. Below, the order services stop in and the mirror order they start in." width="820">
+<img src="https://syrvis.github.io/images/provides-requires.svg" alt="Two groups of services: media requires metrics and is bound to observer, which provides it. Below, the order services stop in and the mirror order they start in." width="820">
 
 Syrvis reads that one graph when it checks a staged deployment, and when it drains, stops on battery, reboots and starts after boot.
 The floor, the monitoring that watches the rest, stops last and starts first.
 Ordering by group inside an apply, and a group waiting at boot on what another group provides, are not built yet.
-The [Deployment](https://syrvis.github.io/.github/design/deployment.html) page has the order in full.
+The [Deployment](https://syrvis.github.io/design/deployment.html) page has the order in full.
 
 ## Pairing, with no password
 
@@ -116,9 +116,9 @@ The [Deployment](https://syrvis.github.io/.github/design/deployment.html) page h
 A root step you start in DSM's Task Scheduler installs SyrvisCore and adds your key; then your computer pins the daemon's key.
 Your computer's first connection to the installer is taken on trust on your local network, and the screen says so; a one-time code that proves the server at that first meeting is decided and not built.
 
-<img src="https://syrvis.github.io/.github/images/pairing.svg" alt="Your computer and your server in four steps: you paste your computer's key in DSM, your answers and the checked package go to the installer, the root step starts the daemon, and your computer pins the daemon's key." width="820">
+<img src="https://syrvis.github.io/images/pairing.svg" alt="Your computer and your server in four steps: you paste your computer's key in DSM, your answers and the checked package go to the installer, the root step starts the daemon, and your computer pins the daemon's key." width="820">
 
-The picture shows the four moves between the two machines; the guide walks you through your five steps in [Install: the first handshake](https://syrvis.github.io/.github/guide/install.html).
+The picture shows the four moves between the two machines; the guide walks you through your five steps in [Install: the first handshake](https://syrvis.github.io/guide/install.html).
 
 ## What it looks like
 
@@ -139,25 +139,25 @@ syrvis status · nas · syrvisd 2.0.0 (client 0.0.0-dev)
 
 The libraries that hold state come with TLA+ models, written descriptions of their behaviour that the model checker TLC explores state by state.
 The checks cover claims such as the floor stopping last, the start mirroring the stop, and a loop of needs being refused, and each runs in its repository's gate.
-The [Provability](https://syrvis.github.io/.github/provability/) pages say what each model proves and what it misses.
+The [Provability](https://syrvis.github.io/provability/) pages say what each model proves and what it misses.
 
 ## The repos
 
 | Repo | Its job | Design |
 |---|---|---|
-| [syrvis](https://github.com/syrvis/syrvis) | the daemon, `syrvisd`, its DSM packages (SyrvisCore and the installer), the server's API and the OpenTofu provider | [Daemon](https://syrvis.github.io/.github/design/daemon.html) |
-| [syrvis-cli](https://github.com/syrvis/syrvis-cli) | the `syrvis` command you run on your computer, with the console and the agent bridge | [Client](https://syrvis.github.io/.github/design/client.html) |
-| [syrvis-client](https://github.com/syrvis/syrvis-client) | the library `syrvis` and the console share to reach the server | [Client](https://syrvis.github.io/.github/design/client.html) |
+| [syrvis](https://github.com/syrvis/syrvis) | the daemon, `syrvisd`, its DSM packages (SyrvisCore and the installer), the server's API and the OpenTofu provider | [Daemon](https://syrvis.github.io/design/daemon.html) |
+| [syrvis-cli](https://github.com/syrvis/syrvis-cli) | the `syrvis` command you run on your computer, with the console and the agent bridge | [Client](https://syrvis.github.io/design/client.html) |
+| [syrvis-client](https://github.com/syrvis/syrvis-client) | the library `syrvis` and the console share to reach the server | [Client](https://syrvis.github.io/design/client.html) |
 | [syrvis-console](https://github.com/syrvis/syrvis-console) | the read-only console in your browser | none yet |
-| [syrvis-workflow](https://github.com/syrvis/syrvis-workflow) | the workflow engine: every step journaled, so a workflow resumes after a crash or a reboot | [Engine](https://syrvis.github.io/.github/design/engine.html) |
-| [syrvis-mtls](https://github.com/syrvis/syrvis-mtls) | the mutual TLS connection both ends share, where each side checks the other's key | [Transport](https://syrvis.github.io/.github/design/transport.html) |
-| [syrvis-deploy](https://github.com/syrvis/syrvis-deploy) | deployments, revisions, the drains and the stop and start order | [Deployment](https://syrvis.github.io/.github/design/deployment.html) |
-| [syrvis-common](https://github.com/syrvis/syrvis-common) | the libraries beneath the services, as seven Go modules | [Commons](https://syrvis.github.io/.github/design/commons.html) |
+| [syrvis-workflow](https://github.com/syrvis/syrvis-workflow) | the workflow engine: every step journaled, so a workflow resumes after a crash or a reboot | [Engine](https://syrvis.github.io/design/engine.html) |
+| [syrvis-mtls](https://github.com/syrvis/syrvis-mtls) | the mutual TLS connection both ends share, where each side checks the other's key | [Transport](https://syrvis.github.io/design/transport.html) |
+| [syrvis-deploy](https://github.com/syrvis/syrvis-deploy) | deployments, revisions, the drains and the stop and start order | [Deployment](https://syrvis.github.io/design/deployment.html) |
+| [syrvis-common](https://github.com/syrvis/syrvis-common) | the libraries beneath the services, as seven Go modules | [Commons](https://syrvis.github.io/design/commons.html) |
 
 ## Status
 
 Syrvis is alpha software, and it runs one production server.
 Its code repositories and release pages are private for now, so today the program comes from a release page that needs read access to the organisation.
-This page and the [User guide](https://syrvis.github.io/.github/guide/) are public.
+This page and the [User guide](https://syrvis.github.io/guide/) are public.
 Every repository is MIT-licensed.
 Syrvis is an independent project and is not affiliated with Synology.

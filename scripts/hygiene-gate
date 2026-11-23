@@ -142,7 +142,8 @@ RANGE_ENV_DROP = ("GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE")
 
 
 class RangeFailure(Exception):
-    """A read the range scan could not make: one stderr line, exit 2."""
+    """A read the range scan could not make: one stderr line, exit 2; its second
+    argument is the git verb that failed, which names the recovery."""
 
 
 def range_scanner():
@@ -162,9 +163,9 @@ def range_git(*args):
         proc = subprocess.run(["git", "--no-replace-objects", "-C", ROOT] + list(args), env=env,
                               stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
     except OSError as exc:
-        raise RangeFailure("git could not run (%s)" % type(exc).__name__) from None
+        raise RangeFailure("git could not run (%s)" % type(exc).__name__, "git") from None
     if proc.returncode != 0:
-        raise RangeFailure("git %s exited %d" % (args[0], proc.returncode))
+        raise RangeFailure("git %s exited %d" % (args[0], proc.returncode), args[0])
     return proc.stdout
 
 
@@ -283,6 +284,35 @@ def range_scan(scan, rng, compiled, entries):
     return hits, len(commits)
 
 
+def range_ends(rng):
+    """The revisions a range names, for its recovery line: both ends of a..b or
+    a...b, an empty end read as HEAD, else the one revision less its caret."""
+    for sep in ("...", ".."):
+        if sep in rng:
+            a, _, b = rng.partition(sep)
+            return "%s %s" % (a or "HEAD", b or "HEAD")
+    return rng.lstrip("^") or "HEAD"
+
+
+def range_recovery(exc, rng):
+    """The line that follows a range not judged: what to do, for its cause (hq
+    entry 13, every refusal names its recovery)."""
+    kind = type(exc).__name__
+    verb = exc.args[1] if kind == "RangeFailure" and len(exc.args) > 1 else None
+    if verb == "rev-list":
+        return ("recover by checking that both ends of the range name commits this clone holds"
+                " (git rev-parse %s), fetching what is missing, and running it again" % range_ends(rng))
+    if verb == "git":
+        return "recover by putting git on PATH and running it again"
+    if verb:
+        return ("recover by fetching the objects this clone lacks (a shallow or partial clone: git fetch, or"
+                " git fetch --unshallow) and running it again")
+    if kind in ("UsageError", "Failure"):
+        return "recover by mending the file or the read the parenthesis names, and running it again"
+    return ("recover by checking that scripts/hygiene is present and readable and runs under /usr/bin/python3,"
+            " and running it again")
+
+
 def range_main(rng, words):
     """The range mode's run and its exit: 0 when nothing the range adds lies outside
     .hygiene-allow, 1 when a line or a message does, 2 when the scan did not finish.
@@ -316,12 +346,15 @@ def range_main(rng, words):
         said = kind in ("RangeFailure", "UsageError", "Failure") and exc.args and isinstance(exc.args[0], str)
         sys.stderr.write("hygiene: the range %s was not scanned to its end (%s), so it is not judged\n"
                          % (rng, exc.args[0] if said else kind))
+        sys.stderr.write("hygiene: %s\n" % range_recovery(exc, rng))
         return 2
     names = list(dict.fromkeys(name for name, _ in compiled))
     if dropped:
         print("hygiene: the private list's %d line(s) naming this product (%s) were not applied to its words"
               % (dropped, ", ".join(words)))
         sys.stdout.flush()
+    if not n:
+        print("hygiene: 0 commits in the range %s, so it adds nothing to judge" % rng)
     if not hits:
         print("hygiene: the range %s, %d commit(s), adds no line outside .hygiene-allow and no message"
               " holds a hit (judged: %s)" % (rng, n, ", ".join(names)))
